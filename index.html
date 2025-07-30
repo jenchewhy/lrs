@@ -112,11 +112,12 @@
         
         .player-status {
             font-size: 1.1em;
-            padding: 8px 16px;
+            padding: 12px 24px;
             border-radius: 20px;
             display: inline-block;
             margin-bottom: 10px;
             cursor: pointer;
+            min-width: 120px;
         }
         
         .status-alive {
@@ -302,8 +303,8 @@
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 25px;
-            border: 3px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
         }
         
         .character-selection-section {
@@ -311,8 +312,8 @@
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 25px;
-            border: 3px solid rgba(33, 150, 243, 0.4);
-            box-shadow: 0 4px 20px rgba(33, 150, 243, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
         }
         
         .character-grid {
@@ -616,8 +617,8 @@
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 25px;
-            border: 3px solid rgba(46, 204, 113, 0.4);
-            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
         }
         
         .win-conditions-grid {
@@ -1025,6 +1026,7 @@
         let skillStates = {};
         let selectedCharacters = new Set(['None', 'Killer', 'Civilian']);
         let currentView = 'player'; // 'player' or 'gm'
+        let deathOrder = []; // Track the order players die
 
         // Timer variables
         let timerInterval = null;
@@ -1055,6 +1057,7 @@
                     players: players,
                     skillStates: skillStates,
                     selectedCharacters: Array.from(selectedCharacters),
+                    deathOrder: deathOrder,
                     timerState: {
                         timeLeft: timeLeft,
                         isRunning: isTimerRunning
@@ -1095,6 +1098,11 @@
                     // Update selected characters
                     if (data.selectedCharacters) {
                         selectedCharacters = new Set(data.selectedCharacters);
+                    }
+                    
+                    // Update death order
+                    if (data.deathOrder) {
+                        deathOrder = data.deathOrder;
                     }
                     
                     // Update timer (only if not currently running)
@@ -1610,12 +1618,28 @@
             const deadList = document.getElementById('deadList');
             if (!deadList) return;
             
-            const deadPlayers = players.filter(p => p.status === 'dead');
+            // Get dead players in the order they died
+            const deadPlayersInOrder = [];
             
-            if (deadPlayers.length === 0) {
+            // First, add players in death order
+            deathOrder.forEach(playerNumber => {
+                const player = players.find(p => p.number === playerNumber && p.status === 'dead');
+                if (player) {
+                    deadPlayersInOrder.push(player);
+                }
+            });
+            
+            // Then add any dead players not in death order (shouldn't happen, but just in case)
+            players.forEach(player => {
+                if (player.status === 'dead' && !deadPlayersInOrder.find(p => p.number === player.number)) {
+                    deadPlayersInOrder.push(player);
+                }
+            });
+            
+            if (deadPlayersInOrder.length === 0) {
                 deadList.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No casualties yet...</div>';
             } else {
-                deadList.innerHTML = deadPlayers.map(player => 
+                deadList.innerHTML = deadPlayersInOrder.map(player => 
                     `<div class="dead-player">Player ${player.number}</div>`
                 ).join('');
             }
@@ -1623,8 +1647,24 @@
 
         function toggleStatus(index) {
             console.log('Toggling status for player', index, 'from', players[index].status);
-            players[index].status = players[index].status === 'alive' ? 'dead' : 'alive';
-            console.log('New status:', players[index].status);
+            const player = players[index];
+            const wasAlive = player.status === 'alive';
+            
+            player.status = wasAlive ? 'dead' : 'alive';
+            
+            // Track death order
+            if (wasAlive) {
+                // Player just died - add to death order if not already there
+                if (!deathOrder.includes(player.number)) {
+                    deathOrder.push(player.number);
+                }
+            } else {
+                // Player came back to life - remove from death order
+                deathOrder = deathOrder.filter(num => num !== player.number);
+            }
+            
+            console.log('New status:', player.status);
+            console.log('Death order:', deathOrder);
             
             // Immediately re-render views
             renderAdminView();
@@ -1652,6 +1692,7 @@
             });
             
             skillStates = {};
+            deathOrder = [];
             
             renderAdminView();
             renderPlayerView();
