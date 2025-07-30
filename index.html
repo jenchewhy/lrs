@@ -949,8 +949,8 @@
             // PASTE YOUR FIREBASE CONFIG HERE
             apiKey: "AIzaSyDv5cOm9FY_iCl1h4l5pnEYdYRBjwlTMGw",
             authDomain: "the-killer-game-f86f6.firebaseapp.com",
-            databaseURL: "https://the-killer-game-f86f6-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "the-killer-game-f86f6",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com/",
+            projectId: "https://the-killer-game-f86f6-default-rtdb.asia-southeast1.firebasedatabase.app",
             storageBucket: "the-killer-game-f86f6.firebasestorage.app",
             messagingSenderId: "70683989632",  
             appId: "1:70683989632:web:a12991a0c3c8cf35db3865"
@@ -1063,8 +1063,9 @@
                     lastUpdated: Date.now()
                 };
 
+                console.log('Saving to Firebase:', gameData);
                 database.ref('gameState').set(gameData);
-                console.log('Game state saved to Firebase');
+                console.log('Game state saved to Firebase successfully');
             } catch (error) {
                 console.error('Error saving to Firebase:', error);
             }
@@ -1079,11 +1080,12 @@
             database.ref('gameState').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    console.log('Loading game state from Firebase');
+                    console.log('Loading game state from Firebase', data);
                     
                     // Update players
                     if (data.players) {
                         players = data.players;
+                        console.log('Updated players:', players);
                     }
                     
                     // Update skill states
@@ -1102,10 +1104,9 @@
                         updateTimerDisplay();
                     }
                     
-                    // Re-render views
-                    if (currentView === 'player') {
-                        renderPlayerView();
-                    } else {
+                    // Always re-render both views to ensure sync
+                    renderPlayerView();
+                    if (currentView === 'gm') {
                         renderCharacterSelection();
                         renderAdminView();
                     }
@@ -1622,9 +1623,15 @@
         }
 
         function toggleStatus(index) {
+            console.log('Toggling status for player', index, 'from', players[index].status);
             players[index].status = players[index].status === 'alive' ? 'dead' : 'alive';
+            console.log('New status:', players[index].status);
+            
+            // Immediately re-render views
             renderAdminView();
             renderPlayerView();
+            
+            // Save to Firebase
             saveToFirebase();
         }
 
@@ -1732,8 +1739,10 @@
             const pauseBtn = document.getElementById('pauseBtn');
             if (pauseBtn) pauseBtn.disabled = true;
             
-            // Initialize Firebase listener
-            loadFromFirebase();
+            // Wait a moment for Firebase to fully initialize, then set up listeners
+            setTimeout(function() {
+                loadFromFirebase();
+            }, 1000);
             
             console.log('Game interface loaded successfully');
         });
