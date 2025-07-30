@@ -411,6 +411,27 @@
             flex-shrink: 0;
         }
         
+        /* Force green colors for character selection - override any conflicts */
+        .character-selection-section .character-item.selected {
+            border-color: #27ae60 !important;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.4), rgba(46, 204, 113, 0.3)) !important;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4) !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-checkbox {
+            background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+            border-color: #27ae60 !important;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.5) !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-name {
+            color: #27ae60 !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-skill {
+            color: rgba(39, 174, 96, 0.8) !important;
+        }
+        
         .character-controls {
             display: flex;
             justify-content: center;
@@ -465,6 +486,14 @@
             margin-bottom: 15px;
             font-size: 1.2em;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .script-phase#nightPhase {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .script-phase#nightPhase h4 {
+            color: #2196f3;
         }
         
         .script-phase ol, .script-phase ul {
@@ -846,11 +875,6 @@
         <div id="playerView">
             <div class="timer-section">
                 <div class="timer-display" id="timerDisplay">01:00</div>
-                <div class="timer-controls">
-                    <button class="timer-btn" id="startBtn" onclick="startTimer()">Start</button>
-                    <button class="timer-btn" id="pauseBtn" onclick="pauseTimer()">Pause</button>
-                    <button class="timer-btn" id="resetTimerBtn" onclick="resetTimer()">Reset</button>
-                </div>
             </div>
             <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em;">Player Status</h2>
             <div class="players-grid" id="playerGrid">
@@ -900,6 +924,11 @@
                             <li><strong>"It is time to vote, countdown in 5,4,3,2,1"</strong></li>
                             <li><strong>"Check win conditions"</strong></li>
                         </ol>
+                    </div>
+                    <div class="timer-controls" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
+                        <button class="timer-btn" id="startBtn" onclick="startTimer()">Start</button>
+                        <button class="timer-btn" id="pauseBtn" onclick="pauseTimer()">Pause</button>
+                        <button class="timer-btn" id="resetTimerBtn" onclick="resetTimer()">Reset</button>
                     </div>
                 </div>
             </div>
@@ -1705,12 +1734,12 @@
 
         function updateTimerDisplay() {
             const timerDisplay = document.getElementById('timerDisplay');
-            if (!timerDisplay) return;
             
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
-            timerDisplay.textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timerDisplay) timerDisplay.textContent = timeString;
         }
 
         function startTimer() {
