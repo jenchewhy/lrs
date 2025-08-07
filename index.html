@@ -955,7 +955,7 @@
                     
                     <div class="win-condition-item">
                         <div class="win-title killers">Killers Victory</div>
-                        <div class="win-description">All yellow characters dead OR all blue characters dead</div>
+                        <div class="win-description">All yellow characters dead OR all blue characters dead OR 2 reds + 1 yellow + 1 blue remaining</div>
                         <div class="win-status ongoing">Game in progress</div>
                     </div>
                 </div>
@@ -1501,8 +1501,14 @@
             // Good guys win if all red characters are dead
             const goodGuysWin = aliveByColor.red === 0 && (aliveByColor.yellow > 0 || aliveByColor.blue > 0);
             
-            // Killers win if all yellow are dead OR all blue are dead (and there are red players alive)
-            const killersWin = aliveByColor.red > 0 && (aliveByColor.yellow === 0 || aliveByColor.blue === 0);
+            // Killers win if:
+            // 1. All yellow are dead OR all blue are dead (and there are red players alive)
+            // 2. OR if there are exactly 2 reds, 1 yellow, and 1 blue left
+            const killersWin = aliveByColor.red > 0 && (
+                aliveByColor.yellow === 0 || 
+                aliveByColor.blue === 0 ||
+                (aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1)
+            );
             
             return { goodGuysWin, killersWin, aliveByColor };
         }
@@ -1512,6 +1518,24 @@
             if (!winConditionsGrid) return;
             
             const { goodGuysWin, killersWin, aliveByColor } = checkWinConditions();
+            
+            // Check if the specific 2-1-1 condition is met
+            const specialKillerWin = aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1;
+            
+            let killerWinReason;
+            if (killersWin) {
+                if (specialKillerWin) {
+                    killerWinReason = 'KILLERS WIN! (2 Reds + 1 Yellow + 1 Blue)';
+                } else if (aliveByColor.yellow === 0) {
+                    killerWinReason = 'KILLERS WIN! (All Yellow Dead)';
+                } else if (aliveByColor.blue === 0) {
+                    killerWinReason = 'KILLERS WIN! (All Blue Dead)';
+                } else {
+                    killerWinReason = 'KILLERS WIN!';
+                }
+            } else {
+                killerWinReason = `Red: ${aliveByColor.red}, Yellow: ${aliveByColor.yellow}, Blue: ${aliveByColor.blue}`;
+            }
             
             winConditionsGrid.innerHTML = `
                 <div class="win-condition-item">
@@ -1524,9 +1548,9 @@
                 
                 <div class="win-condition-item">
                     <div class="win-title killers">Killers Victory</div>
-                    <div class="win-description">All yellow characters dead OR all blue characters dead</div>
+                    <div class="win-description">All yellow characters dead OR all blue characters dead OR 2 reds + 1 yellow + 1 blue remaining</div>
                     <div class="win-status ${killersWin ? 'killer-win' : 'ongoing'}">
-                        ${killersWin ? 'KILLERS WIN!' : `Yellow: ${aliveByColor.yellow}, Blue: ${aliveByColor.blue}`}
+                        ${killerWinReason}
                     </div>
                 </div>
             `;
