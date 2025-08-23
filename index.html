@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -251,23 +251,29 @@
         .priest::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
         .priest { border-color: #ffd700; }
         
+        .idiot::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
+        .idiot { border-color: #ffd700; }
+        
+        .little-girl::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
+        .little-girl { border-color: #ffd700; }
+        
+        .bear::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
+        .bear { border-color: #ffd700; }
+        
+        .penguin::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
+        .penguin { border-color: #ffd700; }
+        
         .civilian::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
         .civilian { border-color: #2196f3; }
         
-        .playboy::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .playboy { border-color: #2196f3; }
+        .rooster::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .rooster { border-color: #2196f3; }
         
-        .cupid::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .cupid { border-color: #2196f3; }
+        .thick-skin::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .thick-skin { border-color: #2196f3; }
         
-        .idiot::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .idiot { border-color: #2196f3; }
-        
-        .chicken::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .chicken { border-color: #2196f3; }
-        
-        .gym-rat::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .gym-rat { border-color: #2196f3; }
+        .drunkard::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .drunkard { border-color: #2196f3; }
         
         .none::before { background: linear-gradient(135deg, #374151, #6b7280); }
         .none { border-color: #6b7280; }
@@ -905,31 +911,13 @@
                 </div>
             </div>
             
-            <div class="script-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">📜 Game Master Script</h3>
-                <div class="script-content">
-                    <div class="script-phase" id="nightPhase">
-                        <h4>🌙 Night Phase</h4>
-                        <div id="nightPhaseButtons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-                            <!-- Night phase buttons will be populated dynamically -->
-                        </div>
-                    </div>
-                    
-                    <div class="script-phase" id="dayPhase">
-                        <h4>☀️ Day Phase</h4>
-                        <ol>
-                            <li><strong>"It's day time. Everyone open your eyes"</strong></li>
-                            <li><strong>"Last night [it was a peaceful night] or [Player X] has died"</strong></li>
-                            <li><strong>"Please discuss who you think the killers are"</strong></li>
-                            <li><strong>"It is time to vote, countdown in 5,4,3,2,1"</strong></li>
-                            <li><strong>"Check win conditions"</strong></li>
-                        </ol>
-                    </div>
-                    <div class="timer-controls" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
-                        <button class="timer-btn" id="startBtn" onclick="startTimer()">Start</button>
-                        <button class="timer-btn" id="pauseBtn" onclick="pauseTimer()">Pause</button>
-                        <button class="timer-btn" id="resetTimerBtn" onclick="resetTimer()">Reset</button>
-                    </div>
+            <div class="timer-section">
+                <h3 style="margin-bottom: 15px; font-size: 1.3em;">⏱️ Game Timer</h3>
+                <div class="timer-display" id="timerDisplayGM">01:00</div>
+                <div class="timer-controls" style="display: flex; justify-content: center; gap: 15px;">
+                    <button class="timer-btn" id="startBtnGM" onclick="startTimer()">Start</button>
+                    <button class="timer-btn" id="pauseBtnGM" onclick="pauseTimer()">Pause</button>
+                    <button class="timer-btn" id="resetTimerBtnGM" onclick="resetTimer()">Reset</button>
                 </div>
             </div>
             
@@ -1020,40 +1008,45 @@
         // GAME DATA AND LOGIC
         // ===========================================
 
-        // Character data
+        // Updated character data based on your table
         const characterData = {
-            'None': { skill: '', color: 'none', emoji: '' },
-            'Killer': { skill: 'Night Kill', color: 'killer', emoji: '🔪' },
-            'Super Killer': { skill: 'Take Down', color: 'super-killer', emoji: '🔪' },
-            'Zombie Killer': { skill: 'Infect', color: 'zombie-killer', emoji: '🔪' },
-            'Surgeon Killer': { skill: 'Surgery', color: 'surgeon-killer', emoji: '🔪' },
-            'Shadow Killer': { skill: 'Look Good', color: 'shadow-killer', emoji: '🔪' },
-            'Imitation Killer': { skill: 'Imitate', color: 'imitation-killer', emoji: '🔪' },
-            'Vampire': { skill: 'Bite', color: 'vampire', emoji: '🔪' },
-            'Detective': { skill: 'Inspect', color: 'detective', emoji: '👍' },
-            'Doctor': { skill: 'Heal and Poison', color: 'doctor', emoji: '👍' },
-            'Hunter': { skill: 'Take Down', color: 'hunter', emoji: '👍' },
-            'Knight': { skill: 'Challenge', color: 'knight', emoji: '👍' },
-            'Guard': { skill: 'Protect', color: 'guard', emoji: '👍' },
-            'Undercover': { skill: 'Look Bad', color: 'undercover', emoji: '👍' },
-            'Undertaker': { skill: 'Resurrect', color: 'undertaker', emoji: '👍' },
-            'Night Watcher': { skill: 'Vision', color: 'night-watcher', emoji: '👍' },
-            'Bomber': { skill: 'Bomb', color: 'bomber', emoji: '👍' },
-            'Priest': { skill: 'No Kill', color: 'priest', emoji: '👍' },
-            'Civilian': { skill: 'No skill', color: 'civilian', emoji: '👤' },
-            'Playboy': { skill: 'Sleep', color: 'playboy', emoji: '👤' },
-            'Cupid': { skill: 'Shoot', color: 'cupid', emoji: '👤' },
-            'Idiot': { skill: 'No skill', color: 'idiot', emoji: '👤' },
-            'Chicken': { skill: 'No skill', color: 'chicken', emoji: '👤' },
-            'Gym Rat': { skill: '2 Lives', color: 'gym-rat', emoji: '👤' }
+            '无': { skill: '', color: 'none', emoji: '' },
+            // Red Characters (Bright Red)
+            '狼人': { skill: 'Kill', color: 'killer', emoji: '🔴' },
+            '狼王': { skill: 'Explode', color: 'super-killer', emoji: '🔴' },
+            '石像鬼': { skill: 'Inspect', color: 'zombie-killer', emoji: '🔴' },
+            '机械狼': { skill: 'Imitate', color: 'surgeon-killer', emoji: '🔴' },
+            '禁锢之影': { skill: 'Lock', color: 'shadow-killer', emoji: '🔴' },
+            '狼美人': { skill: 'Seduce', color: 'imitation-killer', emoji: '🔴' },
+            '憎恶猎人': { skill: 'Take Down', color: 'vampire', emoji: '🔴' },
+            // Yellow Characters
+            '女巫': { skill: 'Heal and Poison', color: 'doctor', emoji: '🟡' },
+            '预言家': { skill: 'Inspect', color: 'detective', emoji: '🟡' },
+            '骑士': { skill: 'Challenge', color: 'knight', emoji: '🟡' },
+            '猎人': { skill: 'Take Down', color: 'hunter', emoji: '🟡' },
+            '守卫': { skill: 'Protect', color: 'guard', emoji: '🟡' },
+            '守夜人': { skill: 'Inspect Voted', color: 'undercover', emoji: '🟡' },
+            '通灵师': { skill: 'Inspect Actual', color: 'undertaker', emoji: '🟡' },
+            '月夜祭司': { skill: 'Freeze Kill', color: 'night-watcher', emoji: '🟡' },
+            '织梦人': { skill: 'Dream Weave', color: 'bomber', emoji: '🟡' },
+            '炸弹师': { skill: 'Bomb', color: 'priest', emoji: '🟡' },
+            '白痴': { skill: 'Idiot', color: 'idiot', emoji: '🟡' },
+            '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
+            '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
+            '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
+            '村民': { skill: '', color: 'civilian', emoji: '🟡' },
+            // Blue Characters
+            '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
+            '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
+            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' }
         };
 
         const roles = Object.keys(characterData);
-        const repeatableRoles = ['Killer', 'Civilian'];
+        const repeatableRoles = ['狼人', '村民']; // Essential characters that can be repeated
         
         let players = [];
         let skillStates = {};
-        let selectedCharacters = new Set(['None', 'Killer', 'Civilian']);
+        let selectedCharacters = new Set(['无', '狼人', '村民']); // Start with essential characters
         let currentView = 'player'; // 'player' or 'gm'
         let deathOrder = []; // Track the order players die
 
@@ -1066,7 +1059,7 @@
         for (let i = 1; i <= 10; i++) {
             players.push({
                 number: i,
-                role: 'None',
+                role: '无',
                 status: 'alive'
             });
         }
@@ -1169,127 +1162,11 @@
             document.getElementById('gmView').classList.remove('hidden');
             document.getElementById('playerViewBtn').classList.remove('active');
             document.getElementById('gmViewBtn').classList.add('active');
+            console.log('=== SWITCHING TO GM VIEW ===');
+            console.log('Selected characters:', selectedCharacters);
+            console.log('Current players:', players);
             renderCharacterSelection();
             renderAdminView();
-        }
-
-        // Voice narration scripts
-        const voiceScripts = {
-            'Night Fall': { text: "It's night fall, everyone close your eyes.", color: 'green' },
-            'Killer O': { text: "Killers, open your eyes. Who would you like to kill tonight?", color: 'red' },
-            'Killer X': { text: "Killers, close your eyes", color: 'red' },
-            'Zombie': { text: "Zombie, who would you like to infect?", color: 'red' },
-            'Surgeon': { text: "Surgeon, who's face would you like to alter?", color: 'red' },
-            'Imitation': { text: "Imitation killer, who would you like to imitate?", color: 'red' },
-            'Vampire O': { text: "Vampire, open your eyes. who would you like to bite?", color: 'red' },
-            'Vampire X': { text: "Vampire, close your eyes", color: 'red' },
-            'Detective O': { text: "Detective, open your eyes. Who would you like to inspect?", color: 'yellow' },
-            'Detective X': { text: "Detective, close your eyes", color: 'yellow' },
-            'Doctor O': { text: "Doctor, open your eyes. This person has died, would you like to save them?", color: 'yellow' },
-            'Doctor P': { text: "You have a bottle of poison, would you like to use it?", color: 'yellow' },
-            'Doctor X': { text: "Doctor, close your eyes", color: 'yellow' },
-            'Hunter O': { text: "Hunter, open your eyes", color: 'yellow' },
-            'Hunter X': { text: "Hunter, close your eyes", color: 'yellow' },
-            'Knight O': { text: "Knight, open your eyes", color: 'yellow' },
-            'Knight X': { text: "Knight, close your eyes", color: 'yellow' },
-            'Guard O': { text: "Guard, open your eyes. Who would you like to protect?", color: 'yellow' },
-            'Guard X': { text: "Guard, close your eyes", color: 'yellow' },
-            'Undertaker O': { text: "Undertaker, open your eyes", color: 'yellow' },
-            'Undertaker X': { text: "Undertaker, close your eyes", color: 'yellow' },
-            'Night W O': { text: "Night Watcher, open your eyes", color: 'yellow' },
-            'Night W': { text: "Night Watcher, last night the player voted out was...", color: 'yellow' },
-            'Night W X': { text: "Night Watcher, close your eyes", color: 'yellow' },
-            'Bomber O': { text: "Bomber, open your eyes", color: 'yellow' },
-            'Bomber X': { text: "Bomber, close your eyes", color: 'yellow' },
-            'Priest O': { text: "Priest, open your eyes", color: 'yellow' },
-            'Priest X': { text: "Priest, close your eyes", color: 'yellow' },
-            'Playboy O': { text: "Playboy, open your eyes. Who would you like to sleep with tonight?", color: 'blue' },
-            'Playboy X': { text: "Playboy, close your eyes", color: 'blue' },
-            'Cupid O': { text: "Cupid, open your eyes. Who would you like to shoot with your arrows?", color: 'blue' },
-            'Cupid X': { text: "Cupid, close your eyes", color: 'blue' },
-            'Idiot O': { text: "Idiot, open your eyes", color: 'blue' },
-            'Idiot X': { text: "Idiot, close your eyes", color: 'blue' },
-            'Chicken O': { text: "Chicken, open your eyes", color: 'blue' },
-            'Chicken X': { text: "Chicken, close your eyes", color: 'blue' },
-            'Chicken N': { text: "Second Night fall Activated", color: 'blue' },
-            'Gym Rat O': { text: "Gym Rat, open your eyes", color: 'blue' },
-            'Gym Rat X': { text: "Gym Rat, close your eyes", color: 'blue' }
-        };
-
-        function renderNightPhaseButtons() {
-            const nightPhaseButtons = document.getElementById('nightPhaseButtons');
-            if (!nightPhaseButtons) return;
-
-            // Always include Night Fall button
-            let buttonsHTML = '<button class="script-btn green" onclick="playVoiceNarration(\'It\\\'s night fall, everyone close your eyes.\')">Night Fall</button>';
-
-            // Get active characters from selected characters and assigned players
-            const activeCharacters = new Set();
-            
-            // Add characters that are selected in character selection
-            selectedCharacters.forEach(char => {
-                if (char !== 'None') {
-                    activeCharacters.add(char);
-                }
-            });
-
-            // Add characters that are assigned to players
-            players.forEach(player => {
-                if (player.role !== 'None') {
-                    activeCharacters.add(player.role);
-                }
-            });
-
-            // Character button mapping - only characters with narration buttons
-            const characterButtons = {
-                'Killer': ['Killer O', 'Killer X'],
-                'Zombie Killer': ['Zombie'],
-                'Surgeon Killer': ['Surgeon'],
-                'Imitation Killer': ['Imitation'],
-                'Vampire': ['Vampire O', 'Vampire X'],
-                'Detective': ['Detective O', 'Detective X'],
-                'Doctor': ['Doctor O', 'Doctor P', 'Doctor X'],
-                'Hunter': ['Hunter O', 'Hunter X'],
-                'Knight': ['Knight O', 'Knight X'],
-                'Guard': ['Guard O', 'Guard X'],
-                'Undertaker': ['Undertaker O', 'Undertaker X'],
-                'Night Watcher': ['Night W O', 'Night W', 'Night W X'],
-                'Bomber': ['Bomber O', 'Bomber X'],
-                'Priest': ['Priest O', 'Priest X'],
-                'Playboy': ['Playboy O', 'Playboy X'],
-                'Cupid': ['Cupid O', 'Cupid X'],
-                'Idiot': ['Idiot O', 'Idiot X'],
-                'Chicken': ['Chicken O', 'Chicken X', 'Chicken N'],
-                'Gym Rat': ['Gym Rat O', 'Gym Rat X']
-            };
-
-            // Add buttons for active characters
-            activeCharacters.forEach(character => {
-                if (characterButtons[character]) {
-                    characterButtons[character].forEach(buttonKey => {
-                        if (voiceScripts[buttonKey]) {
-                            const script = voiceScripts[buttonKey];
-                            const escapedText = script.text.replace(/'/g, "\\'");
-                            buttonsHTML += `<button class="script-btn ${script.color}" onclick="playVoiceNarration('${escapedText}')">${buttonKey}</button>`;
-                        }
-                    });
-                }
-            });
-
-            nightPhaseButtons.innerHTML = buttonsHTML;
-        }
-
-        function playVoiceNarration(text) {
-            if ('speechSynthesis' in window) {
-                speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.8;
-                utterance.pitch = 0.9;
-                utterance.volume = 1.0;
-                speechSynthesis.speak(utterance);
-            } else {
-                alert('Voice narration not supported in this browser. Text: ' + text);
-            }
         }
 
         function getRoleClass(role) {
@@ -1303,7 +1180,7 @@
             characterGrid.innerHTML = '';
             
             roles.forEach(role => {
-                if (role === 'None') return;
+                if (role === '无') return;
                 
                 const item = document.createElement('div');
                 item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
@@ -1323,7 +1200,7 @@
                         selectedCharacters.delete(role);
                         players.forEach(player => {
                             if (player.role === role) {
-                                player.role = 'None';
+                                player.role = '无';
                             }
                         });
                     } else {
@@ -1340,7 +1217,7 @@
 
         function selectAllCharacters() {
             roles.forEach(role => {
-                if (role !== 'None') {
+                if (role !== '无') {
                     selectedCharacters.add(role);
                 }
             });
@@ -1351,9 +1228,9 @@
         
         function deselectAllCharacters() {
             selectedCharacters.clear();
-            selectedCharacters.add('None');
+            selectedCharacters.add('无');
             players.forEach(player => {
-                player.role = 'None';
+                player.role = '无';
             });
             renderCharacterSelection();
             renderAdminView();
@@ -1362,12 +1239,12 @@
         
         function selectEssentialOnly() {
             selectedCharacters.clear();
-            selectedCharacters.add('None');
-            selectedCharacters.add('Killer');
-            selectedCharacters.add('Civilian');
+            selectedCharacters.add('无');
+            selectedCharacters.add('狼人'); // Essential
+            selectedCharacters.add('村民'); // Essential
             players.forEach(player => {
                 if (!selectedCharacters.has(player.role)) {
-                    player.role = 'None';
+                    player.role = '无';
                 }
             });
             renderCharacterSelection();
@@ -1377,11 +1254,11 @@
 
         function getAvailableRoles(currentPlayerIndex) {
             const usedRoles = players
-                .filter((player, index) => index !== currentPlayerIndex && player.role !== 'None')
+                .filter((player, index) => index !== currentPlayerIndex && player.role !== '无')
                 .map(player => player.role);
             
             return Array.from(selectedCharacters).filter(role => {
-                if (role === 'None') return true;
+                if (role === '无') return true;
                 if (repeatableRoles.includes(role)) return true;
                 return !usedRoles.includes(role);
             });
@@ -1391,19 +1268,35 @@
             const skillsGrid = document.getElementById('skillsGrid');
             if (!skillsGrid) return;
             
+            console.log('Rendering skills grid...');
+            console.log('Current players:', players);
+            
             const activeSkills = new Map();
             
-            players.forEach(player => {
-                if (player.role !== 'None' && characterData[player.role]?.skill && 
-                    characterData[player.role].skill !== 'No skill' && 
+            // Collect all players with skills
+            players.forEach((player, playerIndex) => {
+                console.log(`Checking player ${player.number}: role=${player.role}, skill=${characterData[player.role]?.skill}`);
+                
+                if (player.role !== '无' && characterData[player.role]?.skill && 
                     characterData[player.role].skill !== '') {
                     const skill = characterData[player.role].skill;
-                    if (!activeSkills.has(skill)) {
-                        activeSkills.set(skill, []);
+                    const skillKey = `${skill}_${player.number}`; // Unique key per player
+                    
+                    console.log(`Adding skill: ${skillKey} for player ${player.number}`);
+                    
+                    if (!activeSkills.has(skillKey)) {
+                        activeSkills.set(skillKey, {
+                            skill: skill,
+                            character: player.role,
+                            playerNumber: player.number,
+                            playerIndex: playerIndex
+                        });
                     }
-                    activeSkills.get(skill).push(player.role);
                 }
             });
+            
+            console.log('Active skills found:', activeSkills.size);
+            console.log('Skills map:', activeSkills);
             
             if (activeSkills.size === 0) {
                 skillsGrid.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No special skills selected</div>';
@@ -1412,58 +1305,45 @@
             
             skillsGrid.innerHTML = '';
             
-            Array.from(activeSkills.entries()).forEach(([skill, characters]) => {
-                const characterNames = [...new Set(characters)].join(', ');
+            // Display each skill instance
+            Array.from(activeSkills.entries()).forEach(([skillKey, skillData]) => {
+                const { skill, character, playerNumber, playerIndex } = skillData;
                 
                 if (skill === 'Heal and Poison') {
-                    if (skillStates['heal'] === undefined) skillStates['heal'] = false;
-                    if (skillStates['poison'] === undefined) skillStates['poison'] = false;
+                    // Special handling for 女巫 (Witch) - two separate skills
+                    const healKey = `heal_${playerNumber}`;
+                    const poisonKey = `poison_${playerNumber}`;
+                    
+                    if (skillStates[healKey] === undefined) skillStates[healKey] = false;
+                    if (skillStates[poisonKey] === undefined) skillStates[poisonKey] = false;
                     
                     skillsGrid.innerHTML += `
-                        <div class="skill-item ${skillStates['heal'] ? 'used' : ''}" onclick="toggleSkill('heal', this)">
-                            <div class="skill-checkbox">${skillStates['heal'] ? '✓' : ''}</div>
+                        <div class="skill-item ${skillStates[healKey] ? 'used' : ''}" onclick="toggleSkill('${healKey}', this)">
+                            <div class="skill-checkbox">${skillStates[healKey] ? '✓' : ''}</div>
                             <div class="skill-info">
-                                <div class="skill-character">${characterNames}</div>
+                                <div class="skill-character">${character}</div>
                                 <div class="skill-name">Heal</div>
                             </div>
                             <div class="skill-emoji">💉</div>
                         </div>
-                        <div class="skill-item ${skillStates['poison'] ? 'used' : ''}" onclick="toggleSkill('poison', this)">
-                            <div class="skill-checkbox">${skillStates['poison'] ? '✓' : ''}</div>
+                        <div class="skill-item ${skillStates[poisonKey] ? 'used' : ''}" onclick="toggleSkill('${poisonKey}', this)">
+                            <div class="skill-checkbox">${skillStates[poisonKey] ? '✓' : ''}</div>
                             <div class="skill-info">
-                                <div class="skill-character">${characterNames}</div>
+                                <div class="skill-character">${character}</div>
                                 <div class="skill-name">Poison</div>
                             </div>
                             <div class="skill-emoji">☠️</div>
                         </div>
                     `;
-                } else if (skill === '2 Lives') {
-                    if (skillStates['life1'] === undefined) skillStates['life1'] = false;
-                    if (skillStates['life2'] === undefined) skillStates['life2'] = false;
+                } else {
+                    // Regular skills - clickable to mark as used
+                    if (skillStates[skillKey] === undefined) skillStates[skillKey] = false;
                     
                     skillsGrid.innerHTML += `
-                        <div class="skill-item ${skillStates['life1'] ? 'used' : ''}" onclick="toggleSkill('life1', this)">
-                            <div class="skill-checkbox">${skillStates['life1'] ? '✓' : ''}</div>
+                        <div class="skill-item ${skillStates[skillKey] ? 'used' : ''}" onclick="toggleSkill('${skillKey}', this)">
+                            <div class="skill-checkbox">${skillStates[skillKey] ? '✓' : ''}</div>
                             <div class="skill-info">
-                                <div class="skill-character">${characterNames}</div>
-                                <div class="skill-name">Life 1</div>
-                            </div>
-                            <div class="skill-emoji">❤️</div>
-                        </div>
-                        <div class="skill-item ${skillStates['life2'] ? 'used' : ''}" onclick="toggleSkill('life2', this)">
-                            <div class="skill-checkbox">${skillStates['life2'] ? '✓' : ''}</div>
-                            <div class="skill-info">
-                                <div class="skill-character">${characterNames}</div>
-                                <div class="skill-name">Life 2</div>
-                            </div>
-                            <div class="skill-emoji">❤️</div>
-                        </div>
-                    `;
-                } else {
-                    skillsGrid.innerHTML += `
-                        <div class="skill-item" onclick="console.log('${skill} skill activated')">
-                            <div class="skill-info">
-                                <div class="skill-character">${characterNames}</div>
+                                <div class="skill-character">${character}</div>
                                 <div class="skill-name">${skill}</div>
                             </div>
                             <div class="skill-emoji">⚡</div>
@@ -1471,6 +1351,8 @@
                     `;
                 }
             });
+            
+            console.log('Skills grid rendered with', activeSkills.size, 'skills');
         }
 
         function toggleSkill(skillId, element) {
@@ -1487,15 +1369,25 @@
                 skillStates[skillId] = true;
             }
             
+            console.log(`Skill ${skillId} ${skillStates[skillId] ? 'activated' : 'deactivated'}`);
             saveToFirebase();
         }
 
         function checkWinConditions() {
             const alivePlayers = players.filter(p => p.status === 'alive');
             const aliveByColor = {
-                red: alivePlayers.filter(p => characterData[p.role]?.color?.includes('killer') || p.role === 'Vampire').length,
-                yellow: alivePlayers.filter(p => ['detective', 'doctor', 'hunter', 'knight', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest'].includes(characterData[p.role]?.color)).length,
-                blue: alivePlayers.filter(p => ['playboy', 'cupid', 'idiot', 'chicken', 'gym-rat', 'civilian'].includes(characterData[p.role]?.color)).length
+                red: alivePlayers.filter(p => {
+                    const color = characterData[p.role]?.color;
+                    return color && (color.includes('killer') || color === 'vampire');
+                }).length,
+                yellow: alivePlayers.filter(p => {
+                    const color = characterData[p.role]?.color;
+                    return color && ['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin', 'civilian'].includes(color);
+                }).length,
+                blue: alivePlayers.filter(p => {
+                    const color = characterData[p.role]?.color;
+                    return color && ['rooster', 'thick-skin', 'drunkard'].includes(color);
+                }).length
             };
             
             // Good guys win if all red characters are dead
@@ -1560,7 +1452,7 @@
             if (players.length < 15) {
                 players.push({
                     number: players.length + 1,
-                    role: 'None',
+                    role: '无',
                     status: 'alive'
                 });
                 renderAdminView();
@@ -1612,6 +1504,7 @@
         }
 
         function renderAdminView() {
+            console.log('=== RENDERING ADMIN VIEW ===');
             const grid = document.getElementById('adminGrid');
             if (!grid) return;
             
@@ -1662,9 +1555,10 @@
                 }
             }
             
+            console.log('About to render skills grid...');
             renderSkillsGrid();
             renderWinConditions();
-            renderNightPhaseButtons();
+            console.log('=== ADMIN VIEW RENDERED ===');
         }
 
         function renderDeadList() {
@@ -1728,14 +1622,17 @@
         }
 
         function changeRoleDropdown(index, newRole) {
+            console.log(`Changing player ${index + 1} role to: ${newRole}`);
             players[index].role = newRole;
+            console.log('Current players:', players);
             renderAdminView();
+            renderSkillsGrid(); // Explicitly call this
             saveToFirebase();
         }
 
         function resetAll() {
             players.forEach(player => {
-                player.role = 'None';
+                player.role = '无';
                 player.status = 'alive';
             });
             
@@ -1758,12 +1655,14 @@
 
         function updateTimerDisplay() {
             const timerDisplay = document.getElementById('timerDisplay');
+            const timerDisplayGM = document.getElementById('timerDisplayGM');
             
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
             if (timerDisplay) timerDisplay.textContent = timeString;
+            if (timerDisplayGM) timerDisplayGM.textContent = timeString;
         }
 
         function startTimer() {
@@ -1771,9 +1670,13 @@
                 isTimerRunning = true;
                 const startBtn = document.getElementById('startBtn');
                 const pauseBtn = document.getElementById('pauseBtn');
+                const startBtnGM = document.getElementById('startBtnGM');
+                const pauseBtnGM = document.getElementById('pauseBtnGM');
                 
                 if (startBtn) startBtn.disabled = true;
                 if (pauseBtn) pauseBtn.disabled = false;
+                if (startBtnGM) startBtnGM.disabled = true;
+                if (pauseBtnGM) pauseBtnGM.disabled = false;
                 
                 timerInterval = setInterval(function() {
                     timeLeft--;
@@ -1796,9 +1699,13 @@
                 
                 const startBtn = document.getElementById('startBtn');
                 const pauseBtn = document.getElementById('pauseBtn');
+                const startBtnGM = document.getElementById('startBtnGM');
+                const pauseBtnGM = document.getElementById('pauseBtnGM');
                 
                 if (startBtn) startBtn.disabled = false;
                 if (pauseBtn) pauseBtn.disabled = true;
+                if (startBtnGM) startBtnGM.disabled = false;
+                if (pauseBtnGM) pauseBtnGM.disabled = true;
                 
                 saveToFirebase(); // Save timer state
             }
@@ -1811,16 +1718,77 @@
             
             const startBtn = document.getElementById('startBtn');
             const pauseBtn = document.getElementById('pauseBtn');
+            const startBtnGM = document.getElementById('startBtnGM');
+            const pauseBtnGM = document.getElementById('pauseBtnGM');
             
             if (startBtn) startBtn.disabled = false;
             if (pauseBtn) pauseBtn.disabled = true;
+            if (startBtnGM) startBtnGM.disabled = false;
+            if (pauseBtnGM) pauseBtnGM.disabled = true;
             
             saveToFirebase(); // Save timer state
         }
 
-        // ===========================================
-        // INITIALIZATION
-        // ===========================================
+        // Test function for debugging - can be called from console
+        function debugSkills() {
+            console.log('=== DEBUGGING SKILLS ===');
+            console.log('Current view:', currentView);
+            console.log('Selected characters:', selectedCharacters);
+            console.log('Current players:', players);
+            console.log('Character data sample:', {
+                '狼人': characterData['狼人'],
+                '女巫': characterData['女巫'],
+                '预言家': characterData['预言家']
+            });
+            
+            // Check if skills grid element exists
+            const skillsGrid = document.getElementById('skillsGrid');
+            console.log('Skills grid element exists:', !!skillsGrid);
+            if (skillsGrid) {
+                console.log('Skills grid innerHTML:', skillsGrid.innerHTML);
+            }
+            
+            // Force select characters with skills
+            console.log('=== FORCING CHARACTER SELECTION ===');
+            selectedCharacters.add('狼人');
+            selectedCharacters.add('女巫');
+            selectedCharacters.add('预言家');
+            selectedCharacters.add('猎人');
+            console.log('Updated selected characters:', selectedCharacters);
+            
+            // Test manual assignment
+            console.log('=== TESTING MANUAL ASSIGNMENT ===');
+            players[0].role = '狼人';
+            players[1].role = '女巫';
+            players[2].role = '预言家';
+            players[3].role = '猎人';
+            console.log('Updated players:', players);
+            
+            // Test skill detection manually
+            console.log('=== TESTING SKILL DETECTION ===');
+            players.forEach((player, index) => {
+                if (player.role !== '无') {
+                    const charData = characterData[player.role];
+                    const skill = charData?.skill;
+                    console.log(`Player ${player.number}: ${player.role} -> charData:`, charData, '-> skill:', skill);
+                    console.log(`  Has skill: ${skill && skill !== ''}`);
+                }
+            });
+            
+            // Manually call renderSkillsGrid
+            console.log('=== MANUALLY CALLING RENDERSKILLSGRID ===');
+            renderSkillsGrid();
+            
+            // Re-render everything
+            console.log('=== RE-RENDERING VIEWS ===');
+            if (currentView === 'gm') {
+                renderCharacterSelection();
+                renderAdminView();
+            }
+        }
+
+        // Make it globally accessible for console testing
+        window.debugSkills = debugSkills;
 
         // Initialize the page
         window.addEventListener('load', function() {
@@ -1830,7 +1798,9 @@
             // Initialize timer display
             updateTimerDisplay();
             const pauseBtn = document.getElementById('pauseBtn');
+            const pauseBtnGM = document.getElementById('pauseBtnGM');
             if (pauseBtn) pauseBtn.disabled = true;
+            if (pauseBtnGM) pauseBtnGM.disabled = true;
             
             // Wait a moment for Firebase to fully initialize, then set up listeners
             setTimeout(function() {
