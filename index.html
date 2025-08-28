@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1034,7 +1034,7 @@
             '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
             '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
             '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
-            '村民': { skill: '', color: 'civilian', emoji: '🟡' },
+            '村民': { skill: '', color: 'civilian', emoji: '🔵' },
             // Blue Characters
             '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
             '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
@@ -1382,11 +1382,11 @@
                 }).length,
                 yellow: alivePlayers.filter(p => {
                     const color = characterData[p.role]?.color;
-                    return color && ['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin', 'civilian'].includes(color);
+                    return color && ['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(color);
                 }).length,
                 blue: alivePlayers.filter(p => {
                     const color = characterData[p.role]?.color;
-                    return color && ['rooster', 'thick-skin', 'drunkard'].includes(color);
+                    return color && ['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(color);
                 }).length
             };
             
@@ -1514,16 +1514,77 @@
                 const card = document.createElement('div');
                 card.className = `player-card ${getRoleClass(player.role)}`;
                 
+                const currentRole = player.role;
+                const emoji = characterData[currentRole]?.emoji || '';
                 const availableRoles = getAvailableRoles(index);
-                const roleOptions = availableRoles.map(role => 
-                    `<option value="${role}" ${player.role === role ? 'selected' : ''}>${characterData[role]?.emoji ? characterData[role].emoji + ' ' : ''}${role}</option>`
-                ).join('');
+                
+                // Create character selection icons
+                const characterIcons = availableRoles.map(role => {
+                    const isSelected = role === currentRole;
+                    const roleEmoji = characterData[role]?.emoji || '';
+                    return `
+                        <div class="char-icon ${isSelected ? 'selected' : ''}" 
+                             onclick="selectCharacterForPlayer(${index}, '${role}')"
+                             title="${role}"
+                             style="
+                                display: inline-block;
+                                width: 32px;
+                                height: 32px;
+                                margin: 2px;
+                                background: ${isSelected ? 'rgba(39, 174, 96, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+                                border: ${isSelected ? '2px solid #27ae60' : '1px solid rgba(255, 255, 255, 0.3)'};
+                                border-radius: 6px;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 14px;
+                                user-select: none;
+                                -webkit-user-select: none;
+                                -webkit-tap-highlight-color: transparent;
+                             "
+                             onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='#27ae60'"
+                             onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${isSelected ? '#27ae60' : 'rgba(255, 255, 255, 0.3)'}'"
+                        >${roleEmoji}</div>
+                    `;
+                }).join('');
                 
                 card.innerHTML = `
                     <div class="player-number">${player.number}</div>
-                    <select class="role-dropdown" onchange="changeRoleDropdown(${index}, this.value)">
-                        ${roleOptions}
-                    </select>
+                    <div class="current-role" style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        padding: 8px 12px;
+                        color: white;
+                        font-size: 1em;
+                        margin-bottom: 10px;
+                        text-align: center;
+                        min-height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        font-weight: bold;
+                    ">
+                        <span style="font-size: 1.2em;">${emoji}</span>
+                        <span>${currentRole}</span>
+                    </div>
+                    <div class="character-selection" style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        gap: 2px;
+                        margin-bottom: 10px;
+                        padding: 5px;
+                        background: rgba(0, 0, 0, 0.2);
+                        border-radius: 6px;
+                        min-height: 40px;
+                        align-items: center;
+                    ">
+                        ${characterIcons}
+                    </div>
                     <div class="player-status ${player.status === 'alive' ? 'status-alive' : 'status-dead'}" 
                          onclick="toggleStatus(${index})">
                         ${player.status.toUpperCase()}
@@ -1621,12 +1682,11 @@
             saveToFirebase();
         }
 
-        function changeRoleDropdown(index, newRole) {
-            console.log(`Changing player ${index + 1} role to: ${newRole}`);
-            players[index].role = newRole;
-            console.log('Current players:', players);
+        function selectCharacterForPlayer(playerIndex, characterRole) {
+            console.log(`Assigning ${characterRole} to player ${playerIndex + 1}`);
+            players[playerIndex].role = characterRole;
             renderAdminView();
-            renderSkillsGrid(); // Explicitly call this
+            renderSkillsGrid();
             saveToFirebase();
         }
 
