@@ -1521,32 +1521,57 @@
                 // Create character selection icons
                 const characterIcons = availableRoles.map(role => {
                     const isSelected = role === currentRole;
-                    const roleEmoji = characterData[role]?.emoji || '';
+                    const roleText = role.length >= 2 ? role.substring(0, 2) : role;
+                    const characterColor = characterData[role]?.color || 'none';
+                    
+                    // Get colors based on character type
+                    let bgColor, borderColor;
+                    if (characterColor.includes('killer') || characterColor === 'vampire') {
+                        // Red characters
+                        bgColor = isSelected ? 'rgba(231, 76, 60, 0.8)' : 'rgba(231, 76, 60, 0.3)';
+                        borderColor = isSelected ? '#e74c3c' : 'rgba(231, 76, 60, 0.6)';
+                    } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
+                        // Yellow characters
+                        bgColor = isSelected ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.3)';
+                        borderColor = isSelected ? '#ffd700' : 'rgba(255, 215, 0, 0.6)';
+                    } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
+                        // Blue characters
+                        bgColor = isSelected ? 'rgba(33, 150, 243, 0.8)' : 'rgba(33, 150, 243, 0.3)';
+                        borderColor = isSelected ? '#2196f3' : 'rgba(33, 150, 243, 0.6)';
+                    } else {
+                        // None/default
+                        bgColor = isSelected ? 'rgba(107, 114, 128, 0.8)' : 'rgba(107, 114, 128, 0.3)';
+                        borderColor = isSelected ? '#6b7280' : 'rgba(107, 114, 128, 0.6)';
+                    }
+                    
                     return `
                         <div class="char-icon ${isSelected ? 'selected' : ''}" 
                              onclick="selectCharacterForPlayer(${index}, '${role}')"
                              title="${role}"
                              style="
                                 display: inline-block;
-                                width: 32px;
+                                width: 36px;
                                 height: 32px;
                                 margin: 2px;
-                                background: ${isSelected ? 'rgba(39, 174, 96, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
-                                border: ${isSelected ? '2px solid #27ae60' : '1px solid rgba(255, 255, 255, 0.3)'};
+                                background: ${bgColor};
+                                border: 2px solid ${borderColor};
                                 border-radius: 6px;
                                 cursor: pointer;
                                 transition: all 0.2s ease;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                font-size: 14px;
+                                font-size: 12px;
+                                font-weight: bold;
+                                color: white;
+                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
                                 user-select: none;
                                 -webkit-user-select: none;
                                 -webkit-tap-highlight-color: transparent;
                              "
-                             onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='#27ae60'"
-                             onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${isSelected ? '#27ae60' : 'rgba(255, 255, 255, 0.3)'}'"
-                        >${roleEmoji}</div>
+                             onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)'"
+                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
+                        >${roleText}</div>
                     `;
                 }).join('');
                 
