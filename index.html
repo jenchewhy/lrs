@@ -827,6 +827,26 @@
             color: white;
         }
         
+        /* Enhanced Drawing Canvas Styles for iPad Pro */
+        #drawingCanvas {
+            width: 100%;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: crosshair;
+            /* Critical for Apple Pencil support */
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            /* Disable default Safari behaviors */
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         @media (max-width: 768px) {
             .player-number {
                 font-size: 3em;
@@ -928,7 +948,7 @@
                 ></textarea>
                 
                 <div class="drawing-section" style="margin-top: 20px;">
-                    <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad (Apple Pencil Ready)</h4>
                     <div class="drawing-controls" style="
                         display: flex; 
                         gap: 10px; 
@@ -964,15 +984,6 @@
                         id="drawingCanvas" 
                         width="800" 
                         height="400"
-                        style="
-                            width: 100%;
-                            height: 300px;
-                            background: rgba(255, 255, 255, 0.1);
-                            border: 2px solid rgba(255, 255, 255, 0.3);
-                            border-radius: 8px;
-                            cursor: crosshair;
-                            touch-action: none;
-                        "
                     ></canvas>
                 </div>
             </div>
@@ -1351,22 +1362,31 @@
         let sequenceNotes = ''; // String to store notes about the sequence
         let drawingData = ''; // String to store canvas drawing data
 
-        // Drawing canvas variables
+        // Drawing canvas variables - Enhanced for Apple Pencil
         let canvas = null;
         let ctx = null;
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let lastPressure = 0.5;
 
         function initializeCanvas() {
             canvas = document.getElementById('drawingCanvas');
-            if (!canvas) return;
+            if (!canvas) {
+                console.error('Canvas element not found');
+                return;
+            }
             
             ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get canvas context');
+                return;
+            }
             
             // Set up drawing settings
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            ctx.imageSmoothingEnabled = true;
             
             // Set up event listeners for size display
             const penSize = document.getElementById('penSize');
@@ -1378,51 +1398,49 @@
                 });
             }
             
-            // Mouse events (for desktop)
-            canvas.addEventListener('mousedown', handlePointerStart);
-            canvas.addEventListener('mousemove', handlePointerMove);
-            canvas.addEventListener('mouseup', handlePointerEnd);
-            canvas.addEventListener('mouseout', handlePointerEnd);
+            // Remove all existing event listeners first
+            canvas.onpointerdown = null;
+            canvas.onpointermove = null;
+            canvas.onpointerup = null;
+            canvas.onpointercancel = null;
+            canvas.onpointerleave = null;
             
-            // Pointer events (modern approach for stylus/touch)
-            canvas.addEventListener('pointerdown', handlePointerStart);
-            canvas.addEventListener('pointermove', handlePointerMove);
-            canvas.addEventListener('pointerup', handlePointerEnd);
-            canvas.addEventListener('pointercancel', handlePointerEnd);
-            canvas.addEventListener('pointerleave', handlePointerEnd);
+            // Primary: Pointer Events (best for stylus support)
+            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false });
+            canvas.addEventListener('pointermove', handlePointerMove, { passive: false });
+            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false });
+            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false });
+            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false });
             
-            // Touch events (fallback for older devices)
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', handlePointerEnd);
-            canvas.addEventListener('touchcancel', handlePointerEnd);
+            // Secondary: Touch Events (fallback - but don't interfere with pointers)
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handlePointerEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handlePointerEnd, { passive: false });
             
-            // Prevent default behaviors that interfere with drawing
-            canvas.addEventListener('touchstart', preventScroll);
-            canvas.addEventListener('touchend', preventScroll);
-            canvas.addEventListener('touchmove', preventScroll);
-            canvas.addEventListener('touchcancel', preventScroll);
-            
-            // Prevent context menu on long press
+            // Prevent context menu and selection
             canvas.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
-            });
+                e.stopPropagation();
+                return false;
+            }, { passive: false });
             
-            console.log('Drawing canvas initialized with enhanced iPad Pro support');
+            canvas.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            }, { passive: false });
+            
+            console.log('Enhanced drawing canvas initialized for iPad Pro + Apple Pencil');
         }
 
-        function preventScroll(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        function getPointerPos(e) {
+        function getCanvasCoordinates(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
             let clientX, clientY;
             
+            // Handle different event types
             if (e.touches && e.touches.length > 0) {
                 // Touch event
                 clientX = e.touches[0].clientX;
@@ -1444,40 +1462,63 @@
         }
 
         function handlePointerStart(e) {
+            // Only handle primary pointer (first touch/stylus)
+            if (e.isPrimary === false) return;
+            
             e.preventDefault();
             e.stopPropagation();
             
             isDrawing = true;
-            const pos = getPointerPos(e);
+            const pos = getCanvasCoordinates(e);
             lastX = pos.x;
             lastY = pos.y;
             
+            // Capture pressure for Apple Pencil
+            lastPressure = e.pressure || 0.5;
+            
             // Set pointer capture for better tracking
-            if (e.pointerId !== undefined) {
+            if (canvas.setPointerCapture) {
                 canvas.setPointerCapture(e.pointerId);
             }
+            
+            console.log('Drawing started - Pointer:', e.pointerType, 'Pressure:', e.pressure);
         }
 
         function handlePointerMove(e) {
-            if (!isDrawing) return;
+            // Only handle primary pointer and when drawing
+            if (!isDrawing || e.isPrimary === false) return;
             
             e.preventDefault();
             e.stopPropagation();
             
-            const pos = getPointerPos(e);
-            
+            const pos = getCanvasCoordinates(e);
             const penColor = document.getElementById('penColor').value;
-            const penSize = document.getElementById('penSize').value;
+            const basePenSize = parseFloat(document.getElementById('penSize').value);
             
-            // Handle pressure if available (Apple Pencil)
-            let pressure = 1;
-            if (e.pressure !== undefined) {
-                pressure = Math.max(0.1, e.pressure); // Minimum pressure
+            // Enhanced pressure handling for Apple Pencil
+            let pressure = e.pressure || 0.5;
+            if (pressure === 0 || pressure === 0.5) {
+                // If no pressure data, use touch force as fallback
+                if (e.force !== undefined) {
+                    pressure = Math.max(0.1, Math.min(1.0, e.force));
+                } else {
+                    pressure = 0.5;
+                }
             }
             
+            // Smooth pressure changes to avoid jarring transitions
+            pressure = lastPressure * 0.7 + pressure * 0.3;
+            lastPressure = pressure;
+            
+            // Apply pressure to line width (minimum 20% of base size)
+            const lineWidth = basePenSize * Math.max(0.2, pressure);
+            
+            // Apply pressure to opacity (minimum 30% opacity)
+            const opacity = Math.max(0.3, pressure);
+            
             ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize * pressure; // Apply pressure to line width
-            ctx.globalAlpha = Math.max(0.3, pressure); // Apply pressure to opacity
+            ctx.lineWidth = lineWidth;
+            ctx.globalAlpha = opacity;
             
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
@@ -1489,59 +1530,77 @@
         }
 
         function handlePointerEnd(e) {
-            if (isDrawing) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                isDrawing = false;
-                ctx.globalAlpha = 1; // Reset opacity
-                
-                // Release pointer capture
-                if (e.pointerId !== undefined) {
-                    try {
-                        canvas.releasePointerCapture(e.pointerId);
-                    } catch (err) {
-                        // Ignore errors if pointer capture wasn't set
-                    }
+            if (!isDrawing) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDrawing = false;
+            ctx.globalAlpha = 1; // Reset opacity
+            lastPressure = 0.5; // Reset pressure
+            
+            // Release pointer capture
+            if (canvas.releasePointerCapture) {
+                try {
+                    canvas.releasePointerCapture(e.pointerId);
+                } catch (err) {
+                    // Ignore errors if pointer capture wasn't set
                 }
-                
-                saveDrawingData();
             }
+            
+            saveDrawingData();
+            console.log('Drawing ended');
         }
 
         function handleTouchStart(e) {
+            // Only handle if no pointer events are firing (older devices)
+            if (e.pointerType !== undefined) return;
+            
             e.preventDefault();
             e.stopPropagation();
             handlePointerStart(e);
         }
 
         function handleTouchMove(e) {
+            // Only handle if no pointer events are firing (older devices)
+            if (e.pointerType !== undefined) return;
+            
             e.preventDefault();
             e.stopPropagation();
             handlePointerMove(e);
         }
 
         function clearCanvas() {
-            if (ctx) {
+            if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 drawingData = '';
                 saveToFirebase();
+                console.log('Canvas cleared');
             }
         }
 
         function saveDrawingData() {
             if (canvas) {
-                drawingData = canvas.toDataURL();
-                saveToFirebase();
+                try {
+                    drawingData = canvas.toDataURL('image/png');
+                    saveToFirebase();
+                    console.log('Drawing data saved');
+                } catch (error) {
+                    console.error('Error saving drawing data:', error);
+                }
             }
         }
 
         function loadDrawingData() {
-            if (drawingData && ctx) {
+            if (drawingData && ctx && canvas) {
                 const img = new Image();
                 img.onload = function() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
+                    console.log('Drawing data loaded');
+                };
+                img.onerror = function() {
+                    console.error('Error loading drawing data');
                 };
                 img.src = drawingData;
             }
@@ -1634,10 +1693,10 @@
             element.addEventListener('drop', handleDrop);
             element.addEventListener('dragend', handleDragEnd);
             
-            // Touch events for mobile/iPad
-            element.addEventListener('touchstart', handleTouchStart);
-            element.addEventListener('touchmove', handleTouchMove);
-            element.addEventListener('touchend', handleTouchEnd);
+            // Touch events for mobile/iPad (sequence drag and drop - different from canvas)
+            element.addEventListener('touchstart', handleSequenceTouchStart);
+            element.addEventListener('touchmove', handleSequenceTouchMove);
+            element.addEventListener('touchend', handleSequenceTouchEnd);
         }
 
         let draggedElement = null;
@@ -1689,8 +1748,8 @@
             draggedElement = null;
         }
 
-        // Touch event handlers for mobile/iPad
-        function handleTouchStart(e) {
+        // Touch event handlers for mobile/iPad (for drag and drop, not drawing)
+        function handleSequenceTouchStart(e) {
             const touch = e.touches[0];
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
@@ -1700,7 +1759,7 @@
             }
         }
 
-        function handleTouchMove(e) {
+        function handleSequenceTouchMove(e) {
             e.preventDefault();
             if (!draggedElement) return;
             
@@ -1718,7 +1777,7 @@
             }
         }
 
-        function handleTouchEnd(e) {
+        function handleSequenceTouchEnd(e) {
             if (!draggedElement) return;
             
             const touch = e.changedTouches[0];
@@ -2199,69 +2258,10 @@
             saveToFirebase(); // Save timer state
         }
 
-        // Test function for debugging - can be called from console
-        function debugSkills() {
-            console.log('=== DEBUGGING SKILLS ===');
-            console.log('Current view:', currentView);
-            console.log('Selected characters:', selectedCharacters);
-            console.log('Current players:', players);
-            console.log('Character data sample:', {
-                '狼人': characterData['狼人'],
-                '女巫': characterData['女巫'],
-                '预言家': characterData['预言家']
-            });
-            
-            // Check if skills grid element exists
-            const skillsGrid = document.getElementById('skillsGrid');
-            console.log('Skills grid element exists:', !!skillsGrid);
-            if (skillsGrid) {
-                console.log('Skills grid innerHTML:', skillsGrid.innerHTML);
-            }
-            
-            // Force select characters with skills
-            console.log('=== FORCING CHARACTER SELECTION ===');
-            selectedCharacters.add('狼人');
-            selectedCharacters.add('女巫');
-            selectedCharacters.add('预言家');
-            selectedCharacters.add('猎人');
-            console.log('Updated selected characters:', selectedCharacters);
-            
-            // Test manual assignment
-            console.log('=== TESTING MANUAL ASSIGNMENT ===');
-            players[0].role = '狼人';
-            players[1].role = '女巫';
-            players[2].role = '预言家';
-            players[3].role = '猎人';
-            console.log('Updated players:', players);
-            
-            // Test skill detection manually
-            console.log('=== TESTING SKILL DETECTION ===');
-            players.forEach((player, index) => {
-                if (player.role !== '无') {
-                    const charData = characterData[player.role];
-                    const skill = charData?.skill;
-                    console.log(`Player ${player.number}: ${player.role} -> charData:`, charData, '-> skill:', skill);
-                    console.log(`  Has skill: ${skill && skill !== ''}`);
-                }
-            });
-            
-            // Manually call renderSkillsGrid
-            console.log('=== MANUALLY CALLING RENDERSKILLSGRID ===');
-            renderSkillsGrid();
-            
-            // Re-render everything
-            console.log('=== RE-RENDERING VIEWS ===');
-            if (currentView === 'gm') {
-                renderCharacterSelection();
-                renderAdminView();
-            }
-        }
-
-        // Make it globally accessible for console testing
-        window.debugSkills = debugSkills;
-
         // Initialize the page
         window.addEventListener('load', function() {
+            console.log('Page loaded, initializing...');
+            
             // Start with player view
             showPlayerView();
             
@@ -2277,7 +2277,7 @@
                 loadFromFirebase();
             }, 1000);
             
-            console.log('Game interface loaded successfully');
+            console.log('Game interface loaded successfully with enhanced Apple Pencil support');
         });
 
         // Auto-save every 30 seconds as backup
