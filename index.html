@@ -967,7 +967,7 @@
                         style="
                             width: 100%;
                             height: 300px;
-                            background: rgba(255, 255, 255, 0.9);
+                            background: rgba(255, 255, 255, 0.1);
                             border: 2px solid rgba(255, 255, 255, 0.3);
                             border-radius: 8px;
                             cursor: crosshair;
@@ -1368,7 +1368,7 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            // Set up event listeners
+            // Set up event listeners for size display
             const penSize = document.getElementById('penSize');
             const sizeDisplay = document.getElementById('sizeDisplay');
             
@@ -1378,89 +1378,147 @@
                 });
             }
             
-            // Mouse events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
+            // Mouse events (for desktop)
+            canvas.addEventListener('mousedown', handlePointerStart);
+            canvas.addEventListener('mousemove', handlePointerMove);
+            canvas.addEventListener('mouseup', handlePointerEnd);
+            canvas.addEventListener('mouseout', handlePointerEnd);
             
-            // Touch events for iPad/mobile
+            // Pointer events (modern approach for stylus/touch)
+            canvas.addEventListener('pointerdown', handlePointerStart);
+            canvas.addEventListener('pointermove', handlePointerMove);
+            canvas.addEventListener('pointerup', handlePointerEnd);
+            canvas.addEventListener('pointercancel', handlePointerEnd);
+            canvas.addEventListener('pointerleave', handlePointerEnd);
+            
+            // Touch events (fallback for older devices)
             canvas.addEventListener('touchstart', handleTouchStart);
             canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchend', handlePointerEnd);
+            canvas.addEventListener('touchcancel', handlePointerEnd);
             
-            // Prevent scrolling when drawing on touch devices
-            canvas.addEventListener('touchstart', function(e) { e.preventDefault(); });
-            canvas.addEventListener('touchend', function(e) { e.preventDefault(); });
-            canvas.addEventListener('touchcancel', function(e) { e.preventDefault(); });
+            // Prevent default behaviors that interfere with drawing
+            canvas.addEventListener('touchstart', preventScroll);
+            canvas.addEventListener('touchend', preventScroll);
+            canvas.addEventListener('touchmove', preventScroll);
+            canvas.addEventListener('touchcancel', preventScroll);
             
-            console.log('Drawing canvas initialized');
+            // Prevent context menu on long press
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            console.log('Drawing canvas initialized with enhanced iPad Pro support');
         }
 
-        function startDrawing(e) {
-            isDrawing = true;
+        function preventScroll(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
-            lastX = (e.clientX - rect.left) * scaleX;
-            lastY = (e.clientY - rect.top) * scaleY;
+            let clientX, clientY;
+            
+            if (e.touches && e.touches.length > 0) {
+                // Touch event
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                // Touch end event
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                // Mouse or pointer event
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
         }
 
-        function draw(e) {
+        function handlePointerStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDrawing = true;
+            const pos = getPointerPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // Set pointer capture for better tracking
+            if (e.pointerId !== undefined) {
+                canvas.setPointerCapture(e.pointerId);
+            }
+        }
+
+        function handlePointerMove(e) {
             if (!isDrawing) return;
             
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
+            e.preventDefault();
+            e.stopPropagation();
             
-            const currentX = (e.clientX - rect.left) * scaleX;
-            const currentY = (e.clientY - rect.top) * scaleY;
+            const pos = getPointerPos(e);
             
             const penColor = document.getElementById('penColor').value;
             const penSize = document.getElementById('penSize').value;
             
+            // Handle pressure if available (Apple Pencil)
+            let pressure = 1;
+            if (e.pressure !== undefined) {
+                pressure = Math.max(0.1, e.pressure); // Minimum pressure
+            }
+            
             ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize;
+            ctx.lineWidth = penSize * pressure; // Apply pressure to line width
+            ctx.globalAlpha = Math.max(0.3, pressure); // Apply pressure to opacity
             
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
-            ctx.lineTo(currentX, currentY);
+            ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
             
-            lastX = currentX;
-            lastY = currentY;
+            lastX = pos.x;
+            lastY = pos.y;
         }
 
-        function stopDrawing() {
+        function handlePointerEnd(e) {
             if (isDrawing) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 isDrawing = false;
+                ctx.globalAlpha = 1; // Reset opacity
+                
+                // Release pointer capture
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.releasePointerCapture(e.pointerId);
+                    } catch (err) {
+                        // Ignore errors if pointer capture wasn't set
+                    }
+                }
+                
                 saveDrawingData();
             }
         }
 
         function handleTouchStart(e) {
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
+            e.preventDefault();
+            e.stopPropagation();
+            handlePointerStart(e);
         }
 
         function handleTouchMove(e) {
-            e.preventDefault(); // Prevent scrolling
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
-        }
-
-        function handleTouchEnd(e) {
-            const mouseEvent = new MouseEvent('mouseup', {});
-            canvas.dispatchEvent(mouseEvent);
+            e.preventDefault();
+            e.stopPropagation();
+            handlePointerMove(e);
         }
 
         function clearCanvas() {
