@@ -564,40 +564,6 @@
             border-radius: 10px;
             align-items: flex-start;
             align-content: flex-start;
-            position: relative;
-        }
-        
-        .drop-zone {
-            width: 4px;
-            height: 50px;
-            background: transparent;
-            border: 2px dashed transparent;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-            margin: 0 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .drop-zone.active {
-            border-color: #27ae60;
-            background: rgba(39, 174, 96, 0.2);
-            width: 20px;
-        }
-        
-        .drop-zone::before {
-            content: '';
-            position: absolute;
-            width: 2px;
-            height: 100%;
-            background: transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .drop-zone.active::before {
-            background: #27ae60;
         }
         
         .sequence-item {
@@ -615,9 +581,8 @@
             align-items: center;
             gap: 8px;
             font-weight: bold;
-            min-height: 50px;
+            min-height: 40px;
             position: relative;
-            touch-action: manipulation;
         }
         
         .sequence-item:active {
@@ -635,13 +600,6 @@
             border-color: #27ae60;
             background: rgba(39, 174, 96, 0.2);
             transform: scale(1.02);
-        }
-        
-        .sequence-container {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 5px;
         }
         
         .sequence-number {
@@ -668,22 +626,6 @@
             font-style: italic;
             width: 100%;
             padding: 20px;
-        }
-        
-        .drag-instruction {
-            position: absolute;
-            top: -30px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .sequence-grid:hover .drag-instruction {
-            opacity: 1;
         }
         
         .win-conditions-section {
@@ -965,6 +907,25 @@
                 <div class="sequence-grid" id="sequenceGrid">
                     <!-- Speech sequence will be populated dynamically -->
                 </div>
+                <textarea 
+                    id="sequenceNotes" 
+                    placeholder="Add notes about the speech sequence..."
+                    style="
+                        width: 100%;
+                        min-height: 80px;
+                        margin-top: 15px;
+                        padding: 12px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 14px;
+                        font-family: inherit;
+                        resize: vertical;
+                        box-sizing: border-box;
+                    "
+                    onchange="saveSequenceNotes(this.value)"
+                ></textarea>
                 
                 <div class="drawing-section" style="margin-top: 20px;">
                     <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
@@ -1166,6 +1127,7 @@
                 const gameData = {
                     players: players,
                     speechSequence: speechSequence,
+                    sequenceNotes: sequenceNotes,
                     drawingData: drawingData,
                     selectedCharacters: Array.from(selectedCharacters),
                     deathOrder: deathOrder,
@@ -1206,16 +1168,22 @@
                         speechSequence = data.speechSequence;
                     }
                     
+                    // Update sequence notes
+                    if (data.sequenceNotes) {
+                        sequenceNotes = data.sequenceNotes;
+                        const notesTextarea = document.getElementById('sequenceNotes');
+                        if (notesTextarea) {
+                            notesTextarea.value = sequenceNotes;
+                        }
+                    }
+                    
                     // Update drawing data
                     if (data.drawingData) {
                         drawingData = data.drawingData;
-                        console.log('Drawing data received from Firebase, length:', drawingData.length);
-                        // Load drawing after a longer delay to ensure canvas is ready
+                        // Load drawing after a short delay to ensure canvas is ready
                         setTimeout(() => {
-                            if (canvas && ctx) {
-                                loadDrawingData();
-                            }
-                        }, 500);
+                            loadDrawingData();
+                        }, 100);
                     }
                     
                     // Update selected characters
@@ -1380,6 +1348,7 @@
         }
 
         let speechSequence = []; // Array to store the order of characters
+        let sequenceNotes = ''; // String to store notes about the sequence
         let drawingData = ''; // String to store canvas drawing data
 
         // Drawing canvas variables
@@ -1409,37 +1378,45 @@
                 });
             }
             
-            // Simplified event handling - focus on touch events for iPad
-            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            // Mouse events (for desktop)
+            canvas.addEventListener('mousedown', handlePointerStart);
+            canvas.addEventListener('mousemove', handlePointerMove);
+            canvas.addEventListener('mouseup', handlePointerEnd);
+            canvas.addEventListener('mouseout', handlePointerEnd);
             
-            // Mouse events for desktop fallback
-            canvas.addEventListener('mousedown', handleMouseStart);
-            canvas.addEventListener('mousemove', handleMouseMove);
-            canvas.addEventListener('mouseup', handleMouseEnd);
+            // Pointer events (modern approach for stylus/touch)
+            canvas.addEventListener('pointerdown', handlePointerStart);
+            canvas.addEventListener('pointermove', handlePointerMove);
+            canvas.addEventListener('pointerup', handlePointerEnd);
+            canvas.addEventListener('pointercancel', handlePointerEnd);
+            canvas.addEventListener('pointerleave', handlePointerEnd);
             
-            // Prevent context menu and other interference
+            // Touch events (fallback for older devices)
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handlePointerEnd);
+            canvas.addEventListener('touchcancel', handlePointerEnd);
+            
+            // Prevent default behaviors that interfere with drawing
+            canvas.addEventListener('touchstart', preventScroll);
+            canvas.addEventListener('touchend', preventScroll);
+            canvas.addEventListener('touchmove', preventScroll);
+            canvas.addEventListener('touchcancel', preventScroll);
+            
+            // Prevent context menu on long press
             canvas.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
-                return false;
             });
             
-            // Prevent page zoom and scroll on canvas
-            canvas.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
-            canvas.addEventListener('gesturechange', function(e) {
-                e.preventDefault();
-            });
-            canvas.addEventListener('gestureend', function(e) {
-                e.preventDefault();
-            });
-            
-            console.log('Canvas initialized for iPad Pro Max');
+            console.log('Drawing canvas initialized with enhanced iPad Pro support');
         }
 
-        function getCanvasCoordinates(e) {
+        function preventScroll(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
@@ -1447,168 +1424,127 @@
             let clientX, clientY;
             
             if (e.touches && e.touches.length > 0) {
+                // Touch event
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             } else if (e.changedTouches && e.changedTouches.length > 0) {
+                // Touch end event
                 clientX = e.changedTouches[0].clientX;
                 clientY = e.changedTouches[0].clientY;
             } else {
+                // Mouse or pointer event
                 clientX = e.clientX;
                 clientY = e.clientY;
             }
             
-            const x = (clientX - rect.left) * scaleX;
-            const y = (clientY - rect.top) * scaleY;
-            
-            console.log('Touch at:', x, y, 'Canvas size:', canvas.width, canvas.height);
-            
-            return { x, y };
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
         }
 
-        function startDrawing(x, y) {
-            isDrawing = true;
-            lastX = x;
-            lastY = y;
-            
-            // Draw a dot to start
-            const penColor = document.getElementById('penColor').value;
-            const penSize = document.getElementById('penSize').value;
-            
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize;
-            ctx.fillStyle = penColor;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, penSize / 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            console.log('Started drawing at:', x, y);
-        }
-
-        function continuDrawing(x, y) {
-            if (!isDrawing) return;
-            
-            const penColor = document.getElementById('penColor').value;
-            const penSize = document.getElementById('penSize').value;
-            
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            
-            lastX = x;
-            lastY = y;
-        }
-
-        function endDrawing() {
-            if (isDrawing) {
-                isDrawing = false;
-                console.log('Finished drawing');
-                debouncedSaveDrawing();
-            }
-        }
-
-        // Touch event handlers (primary for iPad)
-        function handleTouchStart(e) {
+        function handlePointerStart(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('Touch start detected');
-            const coords = getCanvasCoordinates(e);
-            startDrawing(coords.x, coords.y);
+            isDrawing = true;
+            const pos = getPointerPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // Set pointer capture for better tracking
+            if (e.pointerId !== undefined) {
+                canvas.setPointerCapture(e.pointerId);
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const pos = getPointerPos(e);
+            
+            const penColor = document.getElementById('penColor').value;
+            const penSize = document.getElementById('penSize').value;
+            
+            // Handle pressure if available (Apple Pencil)
+            let pressure = 1;
+            if (e.pressure !== undefined) {
+                pressure = Math.max(0.1, e.pressure); // Minimum pressure
+            }
+            
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = penSize * pressure; // Apply pressure to line width
+            ctx.globalAlpha = Math.max(0.3, pressure); // Apply pressure to opacity
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function handlePointerEnd(e) {
+            if (isDrawing) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                isDrawing = false;
+                ctx.globalAlpha = 1; // Reset opacity
+                
+                // Release pointer capture
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.releasePointerCapture(e.pointerId);
+                    } catch (err) {
+                        // Ignore errors if pointer capture wasn't set
+                    }
+                }
+                
+                saveDrawingData();
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            handlePointerStart(e);
         }
 
         function handleTouchMove(e) {
             e.preventDefault();
             e.stopPropagation();
-            
-            if (!isDrawing) return;
-            
-            const coords = getCanvasCoordinates(e);
-            continuDrawing(coords.x, coords.y);
-        }
-
-        function handleTouchEnd(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('Touch end detected');
-            endDrawing();
-        }
-
-        // Mouse event handlers (fallback for desktop)
-        function handleMouseStart(e) {
-            console.log('Mouse start detected');
-            const coords = getCanvasCoordinates(e);
-            startDrawing(coords.x, coords.y);
-        }
-
-        function handleMouseMove(e) {
-            if (!isDrawing) return;
-            const coords = getCanvasCoordinates(e);
-            continuDrawing(coords.x, coords.y);
-        }
-
-        function handleMouseEnd(e) {
-            console.log('Mouse end detected');
-            endDrawing();
+            handlePointerMove(e);
         }
 
         function clearCanvas() {
-            if (ctx && canvas) {
+            if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 drawingData = '';
-                console.log('Canvas cleared manually');
                 saveToFirebase();
             }
         }
 
         function saveDrawingData() {
-            if (canvas && ctx) {
-                try {
-                    drawingData = canvas.toDataURL('image/png');
-                    console.log('Drawing saved, data length:', drawingData.length);
-                    saveToFirebase();
-                } catch (error) {
-                    console.error('Error saving drawing:', error);
-                }
+            if (canvas) {
+                drawingData = canvas.toDataURL();
+                saveToFirebase();
             }
         }
 
         function loadDrawingData() {
-            if (drawingData && ctx && canvas) {
-                try {
-                    const img = new Image();
-                    img.onload = function() {
-                        console.log('Loading drawing data...');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        console.log('Drawing loaded successfully');
-                    };
-                    img.onerror = function() {
-                        console.error('Error loading drawing image');
-                    };
-                    img.src = drawingData;
-                } catch (error) {
-                    console.error('Error in loadDrawingData:', error);
-                }
+            if (drawingData && ctx) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = drawingData;
             }
-        }
-
-        // Debounced save function to prevent too frequent saves
-        let saveTimeout = null;
-        function debouncedSaveDrawing() {
-            if (saveTimeout) {
-                clearTimeout(saveTimeout);
-            }
-            saveTimeout = setTimeout(() => {
-                saveDrawingData();
-            }, 1000); // Save 1 second after last draw action
         }
 
         function saveSequenceNotes(notes) {
@@ -1644,24 +1580,13 @@
             });
             
             if (speechSequence.length === 0) {
-                sequenceGrid.innerHTML = `
-                    <div class="sequence-empty">Select characters above to create speech sequence</div>
-                `;
+                sequenceGrid.innerHTML = '<div class="sequence-empty">Select characters above to create speech sequence</div>';
                 return;
             }
             
-            // Create container for sequence with drop zones
-            sequenceGrid.innerHTML = `
-                <div class="drag-instruction">Tap and hold to drag • Drop between characters to reorder</div>
-                <div class="sequence-container" id="sequenceContainer"></div>
-            `;
+            // Render sequence items
+            sequenceGrid.innerHTML = '';
             
-            const container = document.getElementById('sequenceContainer');
-            
-            // Add initial drop zone
-            container.appendChild(createDropZone(0));
-            
-            // Render sequence items with drop zones between them
             speechSequence.forEach((character, index) => {
                 const characterData_item = characterData[character];
                 const bgColor = getSequenceItemColor(characterData_item?.color);
@@ -1683,71 +1608,10 @@
                 // Add drag event listeners
                 addDragEventListeners(sequenceItem);
                 
-                container.appendChild(sequenceItem);
-                
-                // Add drop zone after each item (except the last)
-                if (index < speechSequence.length - 1) {
-                    container.appendChild(createDropZone(index + 1));
-                }
+                sequenceGrid.appendChild(sequenceItem);
             });
-            
-            // Add final drop zone
-            container.appendChild(createDropZone(speechSequence.length));
             
             console.log('Sequence rendered with', speechSequence.length, 'characters');
-        }
-
-        function createDropZone(position) {
-            const dropZone = document.createElement('div');
-            dropZone.className = 'drop-zone';
-            dropZone.dataset.position = position;
-            
-            // Add event listeners for drop zones
-            dropZone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('active');
-            });
-            
-            dropZone.addEventListener('dragleave', function(e) {
-                this.classList.remove('active');
-            });
-            
-            dropZone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                handleDropZoneDrop(this, e);
-            });
-            
-            // Touch events for iPad
-            dropZone.addEventListener('touchmove', function(e) {
-                if (draggedElement) {
-                    this.classList.add('active');
-                }
-            });
-            
-            return dropZone;
-        }
-
-        function handleDropZoneDrop(dropZone, e) {
-            if (!draggedElement) return;
-            
-            const draggedIndex = parseInt(draggedElement.dataset.index);
-            const dropPosition = parseInt(dropZone.dataset.position);
-            
-            // Remove dragged character from current position
-            const draggedCharacter = speechSequence[draggedIndex];
-            speechSequence.splice(draggedIndex, 1);
-            
-            // Insert at new position (adjust for removed item)
-            const newPosition = dropPosition > draggedIndex ? dropPosition - 1 : dropPosition;
-            speechSequence.splice(newPosition, 0, draggedCharacter);
-            
-            // Clean up visual states
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.classList.remove('active');
-            });
-            
-            renderSequenceGrid();
-            saveToFirebase();
         }
 
         function getSequenceItemColor(characterColor) {
@@ -2236,8 +2100,15 @@
             });
             
             speechSequence = []; // Clear speech sequence
+            sequenceNotes = ''; // Clear notes
             drawingData = ''; // Clear drawing
             deathOrder = [];
+            
+            // Clear the notes textarea
+            const notesTextarea = document.getElementById('sequenceNotes');
+            if (notesTextarea) {
+                notesTextarea.value = '';
+            }
             
             // Clear the canvas
             clearCanvas();
