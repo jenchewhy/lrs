@@ -552,99 +552,80 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        .sequence-grid {
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
+            min-height: 80px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            align-items: flex-start;
+            align-content: flex-start;
         }
         
-        .skills-grid .skill-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+        .sequence-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
+            padding: 10px 15px;
+            cursor: move;
+            cursor: grab;
             transition: all 0.3s ease;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            min-height: 40px;
+            position: relative;
         }
         
-        .skills-grid .skill-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
+        .sequence-item:active {
+            cursor: grabbing;
         }
         
-        .skills-grid .skill-item.used {
+        .sequence-item.dragging {
+            opacity: 0.7;
+            transform: rotate(2deg) scale(1.05);
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sequence-item.drag-over {
             border-color: #27ae60;
-            background: linear-gradient(135deg, rgba(39, 174, 96, 0.4), rgba(46, 204, 113, 0.3));
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-            transform: translateY(-2px);
+            background: rgba(39, 174, 96, 0.2);
+            transform: scale(1.02);
         }
         
-        .skills-grid .skill-checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #fff;
-            border-radius: 3px;
+        .sequence-number {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
             flex-shrink: 0;
-            transition: all 0.3s ease;
         }
         
-        .skills-grid .skill-item.used .skill-checkbox {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        .sequence-character {
             color: white;
-            border-color: #27ae60;
-            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.5);
-            transform: scale(1.1);
+            font-size: 14px;
         }
         
-        .skills-grid .skill-info {
-            flex-grow: 1;
-            min-width: 0;
-        }
-        
-        .skills-grid .skill-character {
-            font-weight: bold;
-            font-size: 0.9em;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .skills-grid .skill-item.used .skill-character {
-            color: #27ae60;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        
-        .skills-grid .skill-name {
-            font-size: 0.75em;
-            color: rgba(255, 255, 255, 0.7);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .skills-grid .skill-item.used .skill-name {
-            color: rgba(39, 174, 96, 0.8);
-        }
-        
-        .skills-grid .skill-emoji {
-            font-size: 1.2em;
-            flex-shrink: 0;
-        }
-        
-        .skills-grid .skill-item.used .skill-emoji {
-            filter: brightness(1.2);
-            transform: scale(1.1);
+        .sequence-empty {
+            text-align: center;
+            color: #bdc3c7;
+            font-style: italic;
+            width: 100%;
+            padding: 20px;
         }
         
         .win-conditions-section {
@@ -922,10 +903,29 @@
             </div>
             
             <div class="skills-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">🎯 Active Special Skills</h3>
-                <div class="skills-grid" id="skillsGrid">
-                    <!-- Skills will be populated dynamically -->
+                <h3 style="margin-bottom: 15px; font-size: 1.3em;">🎤 Speech Sequence</h3>
+                <div class="sequence-grid" id="sequenceGrid">
+                    <!-- Speech sequence will be populated dynamically -->
                 </div>
+                <textarea 
+                    id="sequenceNotes" 
+                    placeholder="Add notes about the speech sequence..."
+                    style="
+                        width: 100%;
+                        min-height: 80px;
+                        margin-top: 15px;
+                        padding: 12px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 14px;
+                        font-family: inherit;
+                        resize: vertical;
+                        box-sizing: border-box;
+                    "
+                    onchange="saveSequenceNotes(this.value)"
+                ></textarea>
             </div>
             
             <div class="players-grid" id="adminGrid">
@@ -1077,7 +1077,8 @@
             try {
                 const gameData = {
                     players: players,
-                    skillStates: skillStates,
+                    speechSequence: speechSequence,
+                    sequenceNotes: sequenceNotes,
                     selectedCharacters: Array.from(selectedCharacters),
                     deathOrder: deathOrder,
                     timerState: {
@@ -1112,9 +1113,18 @@
                         console.log('Updated players:', players);
                     }
                     
-                    // Update skill states
-                    if (data.skillStates) {
-                        skillStates = data.skillStates;
+                    // Update speech sequence
+                    if (data.speechSequence) {
+                        speechSequence = data.speechSequence;
+                    }
+                    
+                    // Update sequence notes
+                    if (data.sequenceNotes) {
+                        sequenceNotes = data.sequenceNotes;
+                        const notesTextarea = document.getElementById('sequenceNotes');
+                        if (notesTextarea) {
+                            notesTextarea.value = sequenceNotes;
+                        }
                     }
                     
                     // Update selected characters
@@ -1138,6 +1148,7 @@
                     if (currentView === 'gm') {
                         renderCharacterSelection();
                         renderAdminView();
+                        renderSequenceGrid();
                     }
                 }
             });
@@ -1208,6 +1219,7 @@
                     }
                     renderCharacterSelection();
                     renderAdminView();
+                    renderSequenceGrid(); // Update sequence when characters are selected/deselected
                     saveToFirebase();
                 };
                 
@@ -1223,6 +1235,7 @@
             });
             renderCharacterSelection();
             renderAdminView();
+            renderSequenceGrid();
             saveToFirebase();
         }
         
@@ -1232,8 +1245,10 @@
             players.forEach(player => {
                 player.role = '无';
             });
+            speechSequence = []; // Clear sequence when deselecting all
             renderCharacterSelection();
             renderAdminView();
+            renderSequenceGrid();
             saveToFirebase();
         }
         
@@ -1249,6 +1264,7 @@
             });
             renderCharacterSelection();
             renderAdminView();
+            renderSequenceGrid();
             saveToFirebase();
         }
 
@@ -1264,113 +1280,206 @@
             });
         }
 
-        function renderSkillsGrid() {
-            const skillsGrid = document.getElementById('skillsGrid');
-            if (!skillsGrid) return;
+        let speechSequence = []; // Array to store the order of characters
+        let sequenceNotes = ''; // String to store notes about the sequence
+
+        function saveSequenceNotes(notes) {
+            sequenceNotes = notes;
+            console.log('Sequence notes saved:', notes);
+            saveToFirebase();
+        }
+
+        function renderSequenceGrid() {
+            const sequenceGrid = document.getElementById('sequenceGrid');
+            if (!sequenceGrid) return;
             
-            console.log('Rendering skills grid...');
-            console.log('Current players:', players);
+            console.log('Rendering speech sequence...');
+            console.log('Selected characters:', selectedCharacters);
+            console.log('Current sequence:', speechSequence);
             
-            const activeSkills = new Map();
+            // Get all selected characters except "无"
+            const availableCharacters = Array.from(selectedCharacters).filter(char => char !== '无');
             
-            // Collect all players with skills
-            players.forEach((player, playerIndex) => {
-                console.log(`Checking player ${player.number}: role=${player.role}, skill=${characterData[player.role]?.skill}`);
-                
-                if (player.role !== '无' && characterData[player.role]?.skill && 
-                    characterData[player.role].skill !== '') {
-                    const skill = characterData[player.role].skill;
-                    const skillKey = `${skill}_${player.number}`; // Unique key per player
-                    
-                    console.log(`Adding skill: ${skillKey} for player ${player.number}`);
-                    
-                    if (!activeSkills.has(skillKey)) {
-                        activeSkills.set(skillKey, {
-                            skill: skill,
-                            character: player.role,
-                            playerNumber: player.number,
-                            playerIndex: playerIndex
-                        });
-                    }
+            // Initialize sequence if empty, but only with characters that have skills or are important
+            if (speechSequence.length === 0 && availableCharacters.length > 0) {
+                speechSequence = [...availableCharacters];
+            }
+            
+            // Remove characters from sequence that are no longer selected
+            speechSequence = speechSequence.filter(char => selectedCharacters.has(char));
+            
+            // Add newly selected characters to the end of sequence
+            availableCharacters.forEach(char => {
+                if (!speechSequence.includes(char)) {
+                    speechSequence.push(char);
                 }
             });
             
-            console.log('Active skills found:', activeSkills.size);
-            console.log('Skills map:', activeSkills);
-            
-            if (activeSkills.size === 0) {
-                skillsGrid.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No special skills selected</div>';
+            if (speechSequence.length === 0) {
+                sequenceGrid.innerHTML = '<div class="sequence-empty">Select characters above to create speech sequence</div>';
                 return;
             }
             
-            skillsGrid.innerHTML = '';
+            // Render sequence items
+            sequenceGrid.innerHTML = '';
             
-            // Display each skill instance
-            Array.from(activeSkills.entries()).forEach(([skillKey, skillData]) => {
-                const { skill, character, playerNumber, playerIndex } = skillData;
+            speechSequence.forEach((character, index) => {
+                const characterData_item = characterData[character];
+                const bgColor = getSequenceItemColor(characterData_item?.color);
                 
-                if (skill === 'Heal and Poison') {
-                    // Special handling for 女巫 (Witch) - two separate skills
-                    const healKey = `heal_${playerNumber}`;
-                    const poisonKey = `poison_${playerNumber}`;
-                    
-                    if (skillStates[healKey] === undefined) skillStates[healKey] = false;
-                    if (skillStates[poisonKey] === undefined) skillStates[poisonKey] = false;
-                    
-                    skillsGrid.innerHTML += `
-                        <div class="skill-item ${skillStates[healKey] ? 'used' : ''}" onclick="toggleSkill('${healKey}', this)">
-                            <div class="skill-checkbox">${skillStates[healKey] ? '✓' : ''}</div>
-                            <div class="skill-info">
-                                <div class="skill-character">${character}</div>
-                                <div class="skill-name">Heal</div>
-                            </div>
-                            <div class="skill-emoji">💉</div>
-                        </div>
-                        <div class="skill-item ${skillStates[poisonKey] ? 'used' : ''}" onclick="toggleSkill('${poisonKey}', this)">
-                            <div class="skill-checkbox">${skillStates[poisonKey] ? '✓' : ''}</div>
-                            <div class="skill-info">
-                                <div class="skill-character">${character}</div>
-                                <div class="skill-name">Poison</div>
-                            </div>
-                            <div class="skill-emoji">☠️</div>
-                        </div>
-                    `;
-                } else {
-                    // Regular skills - clickable to mark as used
-                    if (skillStates[skillKey] === undefined) skillStates[skillKey] = false;
-                    
-                    skillsGrid.innerHTML += `
-                        <div class="skill-item ${skillStates[skillKey] ? 'used' : ''}" onclick="toggleSkill('${skillKey}', this)">
-                            <div class="skill-checkbox">${skillStates[skillKey] ? '✓' : ''}</div>
-                            <div class="skill-info">
-                                <div class="skill-character">${character}</div>
-                                <div class="skill-name">${skill}</div>
-                            </div>
-                            <div class="skill-emoji">⚡</div>
-                        </div>
-                    `;
-                }
+                const sequenceItem = document.createElement('div');
+                sequenceItem.className = 'sequence-item';
+                sequenceItem.draggable = true;
+                sequenceItem.dataset.character = character;
+                sequenceItem.dataset.index = index;
+                
+                sequenceItem.style.background = bgColor.background;
+                sequenceItem.style.borderColor = bgColor.border;
+                
+                sequenceItem.innerHTML = `
+                    <div class="sequence-number">${index + 1}</div>
+                    <div class="sequence-character">${character}</div>
+                `;
+                
+                // Add drag event listeners
+                addDragEventListeners(sequenceItem);
+                
+                sequenceGrid.appendChild(sequenceItem);
             });
             
-            console.log('Skills grid rendered with', activeSkills.size, 'skills');
+            console.log('Sequence rendered with', speechSequence.length, 'characters');
         }
 
-        function toggleSkill(skillId, element) {
-            const checkbox = element.querySelector('.skill-checkbox');
-            const isUsed = element.classList.contains('used');
+        function getSequenceItemColor(characterColor) {
+            if (!characterColor) return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
             
-            if (isUsed) {
-                element.classList.remove('used');
-                checkbox.textContent = '';
-                skillStates[skillId] = false;
-            } else {
-                element.classList.add('used');
-                checkbox.textContent = '✓';
-                skillStates[skillId] = true;
+            if (characterColor.includes('killer') || characterColor === 'vampire') {
+                return { background: 'rgba(231, 76, 60, 0.3)', border: 'rgba(231, 76, 60, 0.6)' };
+            } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
+                return { background: 'rgba(255, 215, 0, 0.3)', border: 'rgba(255, 215, 0, 0.6)' };
+            } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
+                return { background: 'rgba(33, 150, 243, 0.3)', border: 'rgba(33, 150, 243, 0.6)' };
+            }
+            return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
+        }
+
+        function addDragEventListeners(element) {
+            // Mouse events
+            element.addEventListener('dragstart', handleDragStart);
+            element.addEventListener('dragover', handleDragOver);
+            element.addEventListener('drop', handleDrop);
+            element.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events for mobile/iPad
+            element.addEventListener('touchstart', handleTouchStart);
+            element.addEventListener('touchmove', handleTouchMove);
+            element.addEventListener('touchend', handleTouchEnd);
+        }
+
+        let draggedElement = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const target = e.target.closest('.sequence-item');
+            if (target && target !== draggedElement) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            const target = e.target.closest('.sequence-item');
+            if (target && draggedElement && target !== draggedElement) {
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const targetIndex = parseInt(target.dataset.index);
+                
+                // Reorder the sequence array
+                const draggedCharacter = speechSequence[draggedIndex];
+                speechSequence.splice(draggedIndex, 1);
+                speechSequence.splice(targetIndex, 0, draggedCharacter);
+                
+                renderSequenceGrid();
+                saveToFirebase();
             }
             
-            console.log(`Skill ${skillId} ${skillStates[skillId] ? 'activated' : 'deactivated'}`);
-            saveToFirebase();
+            // Clean up
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        // Touch event handlers for mobile/iPad
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            draggedElement = e.target.closest('.sequence-item');
+            if (draggedElement) {
+                draggedElement.classList.add('dragging');
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!draggedElement) return;
+            
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const target = elementBelow?.closest('.sequence-item');
+            
+            // Clear previous highlights
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            
+            if (target && target !== draggedElement) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!draggedElement) return;
+            
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const target = elementBelow?.closest('.sequence-item');
+            
+            if (target && target !== draggedElement) {
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const targetIndex = parseInt(target.dataset.index);
+                
+                // Reorder the sequence array
+                const draggedCharacter = speechSequence[draggedIndex];
+                speechSequence.splice(draggedIndex, 1);
+                speechSequence.splice(targetIndex, 0, draggedCharacter);
+                
+                renderSequenceGrid();
+                saveToFirebase();
+            }
+            
+            // Clean up
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over', 'dragging');
+            });
+            
+            draggedElement = null;
         }
 
         function checkWinConditions() {
@@ -1641,8 +1750,8 @@
                 }
             }
             
-            console.log('About to render skills grid...');
-            renderSkillsGrid();
+            console.log('About to render sequence grid...');
+            renderSequenceGrid();
             renderWinConditions();
             console.log('=== ADMIN VIEW RENDERED ===');
         }
@@ -1711,7 +1820,7 @@
             console.log(`Assigning ${characterRole} to player ${playerIndex + 1}`);
             players[playerIndex].role = characterRole;
             renderAdminView();
-            renderSkillsGrid();
+            renderSequenceGrid();
             saveToFirebase();
         }
 
@@ -1726,11 +1835,19 @@
                 player.number = index + 1;
             });
             
-            skillStates = {};
+            speechSequence = []; // Clear speech sequence
+            sequenceNotes = ''; // Clear notes
             deathOrder = [];
+            
+            // Clear the notes textarea
+            const notesTextarea = document.getElementById('sequenceNotes');
+            if (notesTextarea) {
+                notesTextarea.value = '';
+            }
             
             renderAdminView();
             renderPlayerView();
+            renderSequenceGrid();
             saveToFirebase();
         }
 
