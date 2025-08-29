@@ -329,6 +329,48 @@
             margin-bottom: 20px;
         }
         
+        @media (max-width: 768px) {
+            .character-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            
+            .character-item {
+                padding: 10px 6px;
+                min-height: 45px;
+            }
+            
+            .character-name {
+                font-size: 0.8em;
+            }
+            
+            .character-checkbox {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+            
+            .character-emoji {
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .character-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 4px;
+            }
+            
+            .character-item {
+                padding: 12px 8px;
+                min-height: 50px;
+            }
+            
+            .character-name {
+                font-size: 0.9em;
+            }
+        }
+        
         .character-item {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -1367,14 +1409,13 @@
             canvas.onpointermove = null;
             canvas.onpointerup = null;
             
-            // Enhanced Apple Pencil Event Handling
+            // Pointer Events (Apple Pencil, stylus, mouse)
             canvas.addEventListener('pointerdown', function(e) {
                 console.log('Pointer Down:', {
                     type: e.pointerType,
                     id: e.pointerId,
                     isPrimary: e.isPrimary,
-                    pressure: e.pressure,
-                    buttons: e.buttons
+                    pressure: e.pressure
                 });
                 
                 // Detect Apple Pencil
@@ -1382,27 +1423,23 @@
                 
                 // Only start drawing if no other drawing is in progress
                 if (isDrawing) {
-                    console.log('Already drawing, ignoring new pointer');
+                    console.log('Already drawing, ignoring pointer');
                     e.preventDefault();
                     return;
                 }
                 
-                // Accept Apple Pencil or primary pointers
-                if (isApplePencil || e.isPrimary) {
+                // Accept Apple Pencil or primary pointers (not secondary touches)
+                if (isApplePencil || (e.isPrimary && e.pointerType !== 'touch')) {
                     startDrawing(e);
-                } else {
-                    console.log('Ignoring non-primary pointer');
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
-                
-                e.preventDefault();
-                e.stopPropagation();
             }, { passive: false });
             
             canvas.addEventListener('pointermove', function(e) {
                 if (!isDrawing || drawingPointerId !== e.pointerId) {
                     return;
                 }
-                
                 continueDrawing(e);
                 e.preventDefault();
                 e.stopPropagation();
@@ -1411,37 +1448,87 @@
             canvas.addEventListener('pointerup', function(e) {
                 if (isDrawing && drawingPointerId === e.pointerId) {
                     endDrawing(e);
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
-                e.preventDefault();
-                e.stopPropagation();
             }, { passive: false });
             
             canvas.addEventListener('pointercancel', function(e) {
                 if (isDrawing && drawingPointerId === e.pointerId) {
                     endDrawing(e);
-                }
-                e.preventDefault();
-                e.stopPropagation();
-            }, { passive: false });
-            
-            canvas.addEventListener('pointerleave', function(e) {
-                if (isDrawing && drawingPointerId === e.pointerId) {
-                    endDrawing(e);
-                }
-                e.preventDefault();
-                e.stopPropagation();
-            }, { passive: false });
-            
-            // Block all touch events to prevent interference
-            ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(eventType => {
-                canvas.addEventListener(eventType, function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    return false;
-                }, { passive: false });
-            });
+                }
+            }, { passive: false });
             
-            // Block mouse events if we have pointer events
+            // Touch Events (for finger drawing)
+            canvas.addEventListener('touchstart', function(e) {
+                // Only handle touch if we're not already drawing with pointer/pencil
+                if (isDrawing) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Only handle single finger touch to avoid palm issues
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    
+                    // Create a synthetic event that looks like a pointer event
+                    const syntheticEvent = {
+                        pointerId: 'touch-' + touch.identifier,
+                        pointerType: 'touch',
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        pressure: 0.5,
+                        isPrimary: true
+                    };
+                    
+                    startDrawing(syntheticEvent);
+                    console.log('Touch drawing started');
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            canvas.addEventListener('touchmove', function(e) {
+                if (!isDrawing || !drawingPointerId.startsWith('touch-')) {
+                    return;
+                }
+                
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const syntheticEvent = {
+                        pointerId: drawingPointerId,
+                        pointerType: 'touch',
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        pressure: 0.5,
+                        isPrimary: true
+                    };
+                    
+                    continueDrawing(syntheticEvent);
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            canvas.addEventListener('touchend', function(e) {
+                if (isDrawing && drawingPointerId && drawingPointerId.startsWith('touch-')) {
+                    const syntheticEvent = {
+                        pointerId: drawingPointerId,
+                        pointerType: 'touch'
+                    };
+                    endDrawing(syntheticEvent);
+                    console.log('Touch drawing ended');
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            // Block mouse events to prevent duplication with pointer events
             ['mousedown', 'mousemove', 'mouseup'].forEach(eventType => {
                 canvas.addEventListener(eventType, function(e) {
                     e.preventDefault();
@@ -1455,7 +1542,7 @@
             canvas.addEventListener('selectstart', e => e.preventDefault());
             canvas.addEventListener('dragstart', e => e.preventDefault());
             
-            console.log('Apple Pencil optimized canvas initialized');
+            console.log('Canvas initialized - supports both Apple Pencil and finger drawing');
         }
 
         function getCanvasCoordinates(e) {
@@ -2253,6 +2340,54 @@
         // TIMER FUNCTIONS
         // ===========================================
 
+        // Audio context for tick sound
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                }
+            }
+        }
+
+        function playTickSound() {
+            try {
+                initAudioContext();
+                if (!audioContext) return;
+                
+                // Resume audio context if needed (required for iOS)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // Create a short beep sound
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Configure the sound
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Higher pitch for urgency
+                oscillator.type = 'sine';
+                
+                // Quick fade in/out to avoid clicking
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.15);
+                
+                // Play for 150ms
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+                
+            } catch (error) {
+                console.log('Could not play tick sound:', error);
+            }
+        }
+
         function updateTimerDisplay() {
             const timerDisplay = document.getElementById('timerDisplay');
             const timerDisplayGM = document.getElementById('timerDisplayGM');
@@ -2280,6 +2415,12 @@
                 
                 timerInterval = setInterval(function() {
                     timeLeft--;
+                    
+                    // Add tick sound for last 10 seconds
+                    if (timeLeft <= 10 && timeLeft > 0) {
+                        playTickSound();
+                    }
+                    
                     updateTimerDisplay();
                     saveToFirebase(); // Save timer state
                     
