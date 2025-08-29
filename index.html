@@ -324,8 +324,8 @@
         
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 20px;
         }
         
@@ -333,13 +333,15 @@
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            min-height: 50px;
         }
         
         .character-item:hover {
@@ -390,26 +392,11 @@
             transform: scale(1.1);
         }
         
-        .character-info {
-            flex-grow: 1;
-            min-width: 0;
-        }
-        
         .character-name {
             font-weight: bold;
-            font-size: 0.9em;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .character-skill {
-            font-size: 0.75em;
-            color: rgba(255, 255, 255, 0.7);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.85em;
+            text-align: center;
+            flex-grow: 1;
         }
         
         .character-emoji {
@@ -1061,6 +1048,7 @@
             '禁锢之影': { skill: 'Lock', color: 'shadow-killer', emoji: '🔴' },
             '狼美人': { skill: 'Seduce', color: 'imitation-killer', emoji: '🔴' },
             '憎恶猎人': { skill: 'Take Down', color: 'vampire', emoji: '🔴' },
+            '其他狼': { skill: 'Other', color: 'killer', emoji: '🔴' },
             // Yellow Characters
             '女巫': { skill: 'Heal and Poison', color: 'doctor', emoji: '🟡' },
             '预言家': { skill: 'Inspect', color: 'detective', emoji: '🟡' },
@@ -1249,10 +1237,7 @@
                 const character = characterData[role];
                 item.innerHTML = `
                     <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
-                    <div class="character-info">
-                        <div class="character-name">${role}</div>
-                        <div class="character-skill">${character.skill}</div>
-                    </div>
+                    <div class="character-name">${role}</div>
                     <div class="character-emoji">${character.emoji}</div>
                 `;
                 
@@ -1333,14 +1318,16 @@
         let speechSequence = []; // Array to store the order of characters
         let drawingData = ''; // String to store canvas drawing data
 
-        // Drawing canvas variables - Enhanced for Apple Pencil
+        // Drawing canvas variables - Enhanced Apple Pencil Support
         let canvas = null;
         let ctx = null;
         let isDrawing = false;
+        let currentPath = [];
+        let allPaths = [];
         let lastX = 0;
         let lastY = 0;
-        let lastPressure = 0.5;
-        let drawingPointerId = null; // Track which pointer is drawing
+        let drawingPointerId = null;
+        let isApplePencil = false;
 
         function initializeCanvas() {
             canvas = document.getElementById('drawingCanvas');
@@ -1349,7 +1336,12 @@
                 return;
             }
             
-            ctx = canvas.getContext('2d');
+            ctx = canvas.getContext('2d', {
+                desynchronized: true,
+                alpha: true,
+                willReadFrequently: false
+            });
+            
             if (!ctx) {
                 console.error('Could not get canvas context');
                 return;
@@ -1360,7 +1352,7 @@
             ctx.lineJoin = 'round';
             ctx.imageSmoothingEnabled = true;
             
-            // Set up event listeners for size display
+            // Set up size display
             const penSize = document.getElementById('penSize');
             const sizeDisplay = document.getElementById('sizeDisplay');
             
@@ -1370,52 +1362,100 @@
                 });
             }
             
-            // Remove all existing event listeners first
+            // Clear any existing listeners
             canvas.onpointerdown = null;
             canvas.onpointermove = null;
             canvas.onpointerup = null;
-            canvas.onpointercancel = null;
-            canvas.onpointerleave = null;
             
-            // Primary: Pointer Events (best for stylus support) - with proper options
-            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false, capture: true });
-            canvas.addEventListener('pointermove', handlePointerMove, { passive: false, capture: true });
-            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false, capture: true });
-            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false, capture: true });
-            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false, capture: true });
-            
-            // Disable touch events completely to avoid conflicts with pointer events
-            canvas.addEventListener('touchstart', function(e) {
+            // Enhanced Apple Pencil Event Handling
+            canvas.addEventListener('pointerdown', function(e) {
+                console.log('Pointer Down:', {
+                    type: e.pointerType,
+                    id: e.pointerId,
+                    isPrimary: e.isPrimary,
+                    pressure: e.pressure,
+                    buttons: e.buttons
+                });
+                
+                // Detect Apple Pencil
+                isApplePencil = e.pointerType === 'pen';
+                
+                // Only start drawing if no other drawing is in progress
+                if (isDrawing) {
+                    console.log('Already drawing, ignoring new pointer');
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Accept Apple Pencil or primary pointers
+                if (isApplePencil || e.isPrimary) {
+                    startDrawing(e);
+                } else {
+                    console.log('Ignoring non-primary pointer');
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
-            
-            canvas.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
-            
-            canvas.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
-            
-            // Prevent context menu and selection
-            canvas.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
             }, { passive: false });
             
-            canvas.addEventListener('selectstart', function(e) {
+            canvas.addEventListener('pointermove', function(e) {
+                if (!isDrawing || drawingPointerId !== e.pointerId) {
+                    return;
+                }
+                
+                continueDrawing(e);
                 e.preventDefault();
-                return false;
+                e.stopPropagation();
             }, { passive: false });
             
-            console.log('Enhanced drawing canvas initialized for iPad Pro + Apple Pencil');
+            canvas.addEventListener('pointerup', function(e) {
+                if (isDrawing && drawingPointerId === e.pointerId) {
+                    endDrawing(e);
+                }
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            canvas.addEventListener('pointercancel', function(e) {
+                if (isDrawing && drawingPointerId === e.pointerId) {
+                    endDrawing(e);
+                }
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            canvas.addEventListener('pointerleave', function(e) {
+                if (isDrawing && drawingPointerId === e.pointerId) {
+                    endDrawing(e);
+                }
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            // Block all touch events to prevent interference
+            ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(eventType => {
+                canvas.addEventListener(eventType, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }, { passive: false });
+            });
+            
+            // Block mouse events if we have pointer events
+            ['mousedown', 'mousemove', 'mouseup'].forEach(eventType => {
+                canvas.addEventListener(eventType, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }, { passive: false });
+            });
+            
+            // Prevent other interactions
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            canvas.addEventListener('selectstart', e => e.preventDefault());
+            canvas.addEventListener('dragstart', e => e.preventDefault());
+            
+            console.log('Apple Pencil optimized canvas initialized');
         }
 
         function getCanvasCoordinates(e) {
@@ -1555,39 +1595,34 @@
             console.log('Drawing ended');
         }
 
-        function handleTouchStart(e) {
-            // Only handle if no pointer events are firing (older devices)
-            if (e.pointerType !== undefined) return;
-            
-            e.preventDefault();
-            e.stopPropagation();
-            handlePointerStart(e);
-        }
 
-        function handleTouchMove(e) {
-            // Only handle if no pointer events are firing (older devices)
-            if (e.pointerType !== undefined) return;
-            
-            e.preventDefault();
-            e.stopPropagation();
-            handlePointerMove(e);
-        }
 
         function clearCanvas() {
             if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                allPaths = []; // Clear all stored paths
+                currentPath = [];
                 drawingData = '';
                 saveToFirebase();
-                console.log('Canvas cleared');
+                console.log('Canvas and all paths cleared');
             }
         }
 
         function saveDrawingData() {
-            if (canvas) {
+            if (canvas && allPaths.length > 0) {
                 try {
-                    drawingData = canvas.toDataURL('image/png');
+                    // Save both the image and path data for redundancy
+                    const imageData = canvas.toDataURL('image/png');
+                    const pathData = JSON.stringify(allPaths);
+                    
+                    drawingData = JSON.stringify({
+                        image: imageData,
+                        paths: pathData,
+                        version: 2 // Mark this as the new format
+                    });
+                    
                     saveToFirebase();
-                    console.log('Drawing data saved');
+                    console.log('Drawing data saved with', allPaths.length, 'paths');
                 } catch (error) {
                     console.error('Error saving drawing data:', error);
                 }
@@ -1595,12 +1630,34 @@
         }
 
         function loadDrawingData() {
-            if (drawingData && ctx && canvas) {
+            if (!drawingData || !ctx || !canvas) return;
+            
+            try {
+                // Try to parse as new format first
+                const data = JSON.parse(drawingData);
+                
+                if (data.version === 2 && data.paths) {
+                    // New path-based format
+                    allPaths = JSON.parse(data.paths);
+                    redrawCanvas();
+                    console.log('Loaded', allPaths.length, 'paths from new format');
+                } else if (data.image) {
+                    // Fallback to image format
+                    const img = new Image();
+                    img.onload = function() {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        console.log('Loaded drawing from image format');
+                    };
+                    img.src = data.image;
+                }
+            } catch (e) {
+                // Fallback: treat as direct image data (old format)
                 const img = new Image();
                 img.onload = function() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
-                    console.log('Drawing data loaded');
+                    console.log('Loaded drawing from legacy format');
                 };
                 img.onerror = function() {
                     console.error('Error loading drawing data');
