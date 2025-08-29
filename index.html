@@ -1377,18 +1377,31 @@
             canvas.onpointercancel = null;
             canvas.onpointerleave = null;
             
-            // Primary: Pointer Events (best for stylus support)
-            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false });
-            canvas.addEventListener('pointermove', handlePointerMove, { passive: false });
-            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false });
-            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false });
-            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false });
+            // Primary: Pointer Events (best for stylus support) - with proper options
+            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false, capture: true });
+            canvas.addEventListener('pointermove', handlePointerMove, { passive: false, capture: true });
+            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false, capture: true });
+            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false, capture: true });
+            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false, capture: true });
             
-            // Secondary: Touch Events (fallback - but don't interfere with pointers)
-            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-            canvas.addEventListener('touchend', handlePointerEnd, { passive: false });
-            canvas.addEventListener('touchcancel', handlePointerEnd, { passive: false });
+            // Disable touch events completely to avoid conflicts with pointer events
+            canvas.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
+            
+            canvas.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
+            
+            canvas.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
             
             // Prevent context menu and selection
             canvas.addEventListener('contextmenu', function(e) {
