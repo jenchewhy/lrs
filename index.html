@@ -926,6 +926,55 @@
                     "
                     onchange="saveSequenceNotes(this.value)"
                 ></textarea>
+                
+                <div class="drawing-section" style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
+                    <div class="drawing-controls" style="
+                        display: flex; 
+                        gap: 10px; 
+                        margin-bottom: 10px; 
+                        align-items: center;
+                        flex-wrap: wrap;
+                    ">
+                        <label style="color: white; font-size: 14px;">Color:</label>
+                        <input type="color" id="penColor" value="#ffffff" style="
+                            width: 40px; 
+                            height: 30px; 
+                            border: none; 
+                            border-radius: 4px; 
+                            cursor: pointer;
+                        ">
+                        <label style="color: white; font-size: 14px;">Size:</label>
+                        <input type="range" id="penSize" min="1" max="10" value="3" style="
+                            width: 80px;
+                        ">
+                        <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 20px;">3px</span>
+                        <button onclick="clearCanvas()" style="
+                            background: linear-gradient(45deg, #e74c3c, #c0392b);
+                            border: none;
+                            border-radius: 4px;
+                            color: white;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">Clear</button>
+                    </div>
+                    <canvas 
+                        id="drawingCanvas" 
+                        width="800" 
+                        height="400"
+                        style="
+                            width: 100%;
+                            height: 300px;
+                            background: rgba(255, 255, 255, 0.9);
+                            border: 2px solid rgba(255, 255, 255, 0.3);
+                            border-radius: 8px;
+                            cursor: crosshair;
+                            touch-action: none;
+                        "
+                    ></canvas>
+                </div>
             </div>
             
             <div class="players-grid" id="adminGrid">
@@ -1079,6 +1128,7 @@
                     players: players,
                     speechSequence: speechSequence,
                     sequenceNotes: sequenceNotes,
+                    drawingData: drawingData,
                     selectedCharacters: Array.from(selectedCharacters),
                     deathOrder: deathOrder,
                     timerState: {
@@ -1125,6 +1175,15 @@
                         if (notesTextarea) {
                             notesTextarea.value = sequenceNotes;
                         }
+                    }
+                    
+                    // Update drawing data
+                    if (data.drawingData) {
+                        drawingData = data.drawingData;
+                        // Load drawing after a short delay to ensure canvas is ready
+                        setTimeout(() => {
+                            loadDrawingData();
+                        }, 100);
                     }
                     
                     // Update selected characters
@@ -1178,6 +1237,14 @@
             console.log('Current players:', players);
             renderCharacterSelection();
             renderAdminView();
+            
+            // Initialize canvas after DOM is ready
+            setTimeout(() => {
+                initializeCanvas();
+                if (drawingData) {
+                    loadDrawingData();
+                }
+            }, 100);
         }
 
         function getRoleClass(role) {
@@ -1282,6 +1349,145 @@
 
         let speechSequence = []; // Array to store the order of characters
         let sequenceNotes = ''; // String to store notes about the sequence
+        let drawingData = ''; // String to store canvas drawing data
+
+        // Drawing canvas variables
+        let canvas = null;
+        let ctx = null;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function initializeCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            if (!canvas) return;
+            
+            ctx = canvas.getContext('2d');
+            
+            // Set up drawing settings
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Set up event listeners
+            const penSize = document.getElementById('penSize');
+            const sizeDisplay = document.getElementById('sizeDisplay');
+            
+            if (penSize && sizeDisplay) {
+                penSize.addEventListener('input', function() {
+                    sizeDisplay.textContent = this.value + 'px';
+                });
+            }
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for iPad/mobile
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+            
+            // Prevent scrolling when drawing on touch devices
+            canvas.addEventListener('touchstart', function(e) { e.preventDefault(); });
+            canvas.addEventListener('touchend', function(e) { e.preventDefault(); });
+            canvas.addEventListener('touchcancel', function(e) { e.preventDefault(); });
+            
+            console.log('Drawing canvas initialized');
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            lastX = (e.clientX - rect.left) * scaleX;
+            lastY = (e.clientY - rect.top) * scaleY;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+            
+            const penColor = document.getElementById('penColor').value;
+            const penSize = document.getElementById('penSize').value;
+            
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = penSize;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            lastX = currentX;
+            lastY = currentY;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveDrawingData();
+            }
+        }
+
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchEnd(e) {
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function clearCanvas() {
+            if (ctx) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawingData = '';
+                saveToFirebase();
+            }
+        }
+
+        function saveDrawingData() {
+            if (canvas) {
+                drawingData = canvas.toDataURL();
+                saveToFirebase();
+            }
+        }
+
+        function loadDrawingData() {
+            if (drawingData && ctx) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = drawingData;
+            }
+        }
 
         function saveSequenceNotes(notes) {
             sequenceNotes = notes;
@@ -1837,6 +2043,7 @@
             
             speechSequence = []; // Clear speech sequence
             sequenceNotes = ''; // Clear notes
+            drawingData = ''; // Clear drawing
             deathOrder = [];
             
             // Clear the notes textarea
@@ -1844,6 +2051,9 @@
             if (notesTextarea) {
                 notesTextarea.value = '';
             }
+            
+            // Clear the canvas
+            clearCanvas();
             
             renderAdminView();
             renderPlayerView();
