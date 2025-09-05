@@ -425,10 +425,6 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         
-        .character-item.selected .character-skill {
-            color: rgba(33, 150, 243, 0.8);
-        }
-        
         .character-item.selected .character-emoji {
             filter: brightness(1.2);
             transform: scale(1.1);
@@ -461,10 +457,6 @@
         
         .character-selection-section .character-item.selected .character-name {
             color: #27ae60 !important;
-        }
-        
-        .character-selection-section .character-item.selected .character-skill {
-            color: rgba(39, 174, 96, 0.8) !important;
         }
         
         .character-controls {
@@ -859,7 +851,7 @@
         /* Enhanced Drawing Canvas Styles for iPad Pro */
         #drawingCanvas {
             width: 100%;
-            aspect-ratio: 2/1;
+            aspect-ratio: 5/3;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
@@ -901,7 +893,7 @@
     <div class="header">
         <h1>🔪 The Killer Game 🔪</h1>
         <div class="view-selector">
-            <button class="view-btn" id="playerViewBtn" onclick="showPlayerView()">Player View</button>
+            <button class="view-btn active" id="playerViewBtn" onclick="showPlayerView()">Player View</button>
             <button class="view-btn" id="gmViewBtn" onclick="showGMView()">GM View</button>
         </div>
     </div>
@@ -980,6 +972,16 @@
                             width: 80px;
                         ">
                         <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 20px;">3px</span>
+                        <button id="eraserBtn" onclick="toggleEraser()" style="
+                            background: linear-gradient(45deg, #f39c12, #e67e22);
+                            border: none;
+                            border-radius: 4px;
+                            color: white;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">Eraser</button>
                         <button onclick="clearCanvas()" style="
                             background: linear-gradient(45deg, #e74c3c, #c0392b);
                             border: none;
@@ -1106,11 +1108,13 @@
             '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
             '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
             '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
+            '其他神': { skill: 'Other', color: 'detective', emoji: '🟡' },
             '村民': { skill: '', color: 'civilian', emoji: '🔵' },
             // Blue Characters
             '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
             '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
-            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' }
+            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' },
+            '其他民': { skill: '', color: 'civilian', emoji: '🔵' }
         };
 
         const roles = Object.keys(characterData);
@@ -1136,227 +1140,6 @@
             });
         }
 
-        // ===========================================
-        // FIREBASE FUNCTIONS
-        // ===========================================
-
-        function saveToFirebase() {
-            if (!isFirebaseConnected || !database) {
-                console.log('Firebase not connected, saving locally only');
-                return;
-            }
-
-            try {
-                const gameData = {
-                    players: players,
-                    speechSequence: speechSequence,
-                    drawingData: drawingData,
-                    selectedCharacters: Array.from(selectedCharacters),
-                    deathOrder: deathOrder,
-                    timerState: {
-                        timeLeft: timeLeft,
-                        isRunning: isTimerRunning
-                    },
-                    lastUpdated: Date.now()
-                };
-
-                console.log('Saving to Firebase:', gameData);
-                database.ref('gameState').set(gameData);
-                console.log('Game state saved to Firebase successfully');
-            } catch (error) {
-                console.error('Error saving to Firebase:', error);
-            }
-        }
-
-        function loadFromFirebase() {
-            if (!isFirebaseConnected || !database) {
-                console.log('Firebase not connected, using local data');
-                return;
-            }
-
-            database.ref('gameState').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    console.log('Loading game state from Firebase', data);
-                    
-                    // Update players
-                    if (data.players) {
-                        players = data.players;
-                        console.log('Updated players:', players);
-                    }
-                    
-                    // Update speech sequence
-                    if (data.speechSequence) {
-                        speechSequence = data.speechSequence;
-                    }
-                    
-                    // Update drawing data
-                    if (data.drawingData) {
-                        drawingData = data.drawingData;
-                        // Load drawing after a short delay to ensure canvas is ready
-                        setTimeout(() => {
-                            loadDrawingData();
-                        }, 100);
-                    }
-                    
-                    // Update selected characters
-                    if (data.selectedCharacters) {
-                        selectedCharacters = new Set(data.selectedCharacters);
-                    }
-                    
-                    // Update death order
-                    if (data.deathOrder) {
-                        deathOrder = data.deathOrder;
-                    }
-                    
-                    // Update timer (only if not currently running)
-                    if (data.timerState && !isTimerRunning) {
-                        timeLeft = data.timerState.timeLeft || 60;
-                        updateTimerDisplay();
-                    }
-                    
-                    // Always re-render both views to ensure sync
-                    renderPlayerView();
-                    if (currentView === 'gm') {
-                        renderCharacterSelection();
-                        renderAdminView();
-                        renderSequenceGrid();
-                    }
-                }
-            });
-        }
-
-        // ===========================================
-        // VIEW MANAGEMENT
-        // ===========================================
-
-        function showPlayerView() {
-            currentView = 'player';
-            document.getElementById('playerView').classList.remove('hidden');
-            document.getElementById('gmView').classList.add('hidden');
-            document.getElementById('playerViewBtn').classList.add('active');
-            document.getElementById('gmViewBtn').classList.remove('active');
-            renderPlayerView();
-        }
-
-        function showGMView() {
-            currentView = 'gm';
-            document.getElementById('playerView').classList.add('hidden');
-            document.getElementById('gmView').classList.remove('hidden');
-            document.getElementById('playerViewBtn').classList.remove('active');
-            document.getElementById('gmViewBtn').classList.add('active');
-            console.log('=== SWITCHING TO GM VIEW ===');
-            console.log('Selected characters:', selectedCharacters);
-            console.log('Current players:', players);
-            renderCharacterSelection();
-            renderAdminView();
-            
-            // Initialize canvas after DOM is ready
-            setTimeout(() => {
-                initializeCanvas();
-                if (drawingData) {
-                    loadDrawingData();
-                }
-            }, 100);
-        }
-
-        function getRoleClass(role) {
-            return characterData[role]?.color || 'none';
-        }
-
-        function renderCharacterSelection() {
-            const characterGrid = document.getElementById('characterGrid');
-            if (!characterGrid) return;
-            
-            characterGrid.innerHTML = '';
-            
-            roles.forEach(role => {
-                if (role === '无') return;
-                
-                const item = document.createElement('div');
-                item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
-                
-                const character = characterData[role];
-                item.innerHTML = `
-                    <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
-                    <div class="character-name">${role}</div>
-                    <div class="character-emoji">${character.emoji}</div>
-                `;
-                
-                item.onclick = function() {
-                    if (selectedCharacters.has(role)) {
-                        selectedCharacters.delete(role);
-                        players.forEach(player => {
-                            if (player.role === role) {
-                                player.role = '无';
-                            }
-                        });
-                    } else {
-                        selectedCharacters.add(role);
-                    }
-                    renderCharacterSelection();
-                    renderAdminView();
-                    renderSequenceGrid(); // Update sequence when characters are selected/deselected
-                    saveToFirebase();
-                };
-                
-                characterGrid.appendChild(item);
-            });
-        }
-
-        function selectAllCharacters() {
-            roles.forEach(role => {
-                if (role !== '无') {
-                    selectedCharacters.add(role);
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-            saveToFirebase();
-        }
-        
-        function deselectAllCharacters() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            players.forEach(player => {
-                player.role = '无';
-            });
-            speechSequence = []; // Clear sequence when deselecting all
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-            saveToFirebase();
-        }
-        
-        function selectEssentialOnly() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            selectedCharacters.add('狼人'); // Essential
-            selectedCharacters.add('村民'); // Essential
-            players.forEach(player => {
-                if (!selectedCharacters.has(player.role)) {
-                    player.role = '无';
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-            saveToFirebase();
-        }
-
-        function getAvailableRoles(currentPlayerIndex) {
-            const usedRoles = players
-                .filter((player, index) => index !== currentPlayerIndex && player.role !== '无')
-                .map(player => player.role);
-            
-            return Array.from(selectedCharacters).filter(role => {
-                if (role === '无') return true;
-                if (repeatableRoles.includes(role)) return true;
-                return !usedRoles.includes(role);
-            });
-        }
-
         let speechSequence = []; // Array to store the order of characters
         let drawingData = ''; // String to store canvas drawing data
 
@@ -1366,6 +1149,7 @@
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let isEraserMode = false;
 
         function initializeCanvas() {
             canvas = document.getElementById('drawingCanvas');
@@ -1456,8 +1240,16 @@
             const penColor = document.getElementById('penColor').value;
             const penSize = document.getElementById('penSize').value;
             
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize;
+            if (isEraserMode) {
+                // Eraser mode - use destination-out to erase
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = penSize * 2; // Make eraser bigger
+            } else {
+                // Normal drawing mode
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = penColor;
+                ctx.lineWidth = penSize;
+            }
             
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
@@ -1471,512 +1263,111 @@
         function stopDrawing() {
             if (isDrawing) {
                 isDrawing = false;
-                saveDrawingData();
+                // Reset composite operation to normal
+                ctx.globalCompositeOperation = 'source-over';
                 console.log('Drawing stopped');
             }
         }
 
-        function getCanvasCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
+        function toggleEraser() {
+            isEraserMode = !isEraserMode;
+            const eraserBtn = document.getElementById('eraserBtn');
             
-            let clientX, clientY;
-            
-            // Handle different event types
-            if (e.touches && e.touches.length > 0) {
-                // Touch event
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else if (e.changedTouches && e.changedTouches.length > 0) {
-                // Touch end event
-                clientX = e.changedTouches[0].clientX;
-                clientY = e.changedTouches[0].clientY;
+            if (isEraserMode) {
+                eraserBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
+                eraserBtn.textContent = 'Drawing';
+                canvas.style.cursor = 'crosshair';
             } else {
-                // Mouse or pointer event
-                clientX = e.clientX;
-                clientY = e.clientY;
+                eraserBtn.style.background = 'linear-gradient(45deg, #f39c12, #e67e22)';
+                eraserBtn.textContent = 'Eraser';
+                canvas.style.cursor = 'crosshair';
             }
-            
-            return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
         }
-
-        function handlePointerStart(e) {
-            // If we're already drawing with another pointer, ignore this one
-            if (isDrawing && drawingPointerId !== null && drawingPointerId !== e.pointerId) {
-                e.preventDefault();
-                return;
-            }
-            
-            // Only handle primary pointer OR Apple Pencil specifically
-            if (e.isPrimary === false && e.pointerType !== 'pen') {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            isDrawing = true;
-            drawingPointerId = e.pointerId; // Lock to this pointer
-            
-            const pos = getCanvasCoordinates(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            
-            // Capture pressure for Apple Pencil
-            lastPressure = e.pressure || 0.5;
-            
-            // Set pointer capture for better tracking
-            if (canvas.setPointerCapture) {
-                try {
-                    canvas.setPointerCapture(e.pointerId);
-                } catch (err) {
-                    // Ignore capture errors
-                }
-            }
-            
-            console.log('Drawing started - Pointer:', e.pointerType, 'ID:', e.pointerId, 'Pressure:', e.pressure);
-        }
-
-        function handlePointerMove(e) {
-            // Only handle if we're drawing AND this is the correct pointer
-            if (!isDrawing || drawingPointerId !== e.pointerId) {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const pos = getCanvasCoordinates(e);
-            const penColor = document.getElementById('penColor').value;
-            const basePenSize = parseFloat(document.getElementById('penSize').value);
-            
-            // Enhanced pressure handling for Apple Pencil
-            let pressure = e.pressure || 0.5;
-            if (pressure === 0 || pressure === 0.5) {
-                // If no pressure data, use touch force as fallback
-                if (e.force !== undefined) {
-                    pressure = Math.max(0.1, Math.min(1.0, e.force));
-                } else {
-                    pressure = 0.5;
-                }
-            }
-            
-            // Smooth pressure changes to avoid jarring transitions
-            pressure = lastPressure * 0.7 + pressure * 0.3;
-            lastPressure = pressure;
-            
-            // Apply pressure to line width (minimum 20% of base size)
-            const lineWidth = basePenSize * Math.max(0.2, pressure);
-            
-            // Apply pressure to opacity (minimum 30% opacity)
-            const opacity = Math.max(0.3, pressure);
-            
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = lineWidth;
-            ctx.globalAlpha = opacity;
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function handlePointerEnd(e) {
-            if (!isDrawing) return;
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            isDrawing = false;
-            ctx.globalAlpha = 1; // Reset opacity
-            lastPressure = 0.5; // Reset pressure
-            
-            // Release pointer capture
-            if (canvas.releasePointerCapture) {
-                try {
-                    canvas.releasePointerCapture(e.pointerId);
-                } catch (err) {
-                    // Ignore errors if pointer capture wasn't set
-                }
-            }
-            
-            saveDrawingData();
-            console.log('Drawing ended');
-        }
-
-
 
         function clearCanvas() {
             if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                allPaths = []; // Clear all stored paths
-                currentPath = [];
                 drawingData = '';
-                saveToFirebase();
-                console.log('Canvas and all paths cleared');
+                console.log('Canvas cleared');
             }
         }
 
-        function saveDrawingData() {
-            if (canvas && allPaths.length > 0) {
-                try {
-                    // Save both the image and path data for redundancy
-                    const imageData = canvas.toDataURL('image/png');
-                    const pathData = JSON.stringify(allPaths);
-                    
-                    drawingData = JSON.stringify({
-                        image: imageData,
-                        paths: pathData,
-                        version: 2 // Mark this as the new format
-                    });
-                    
-                    saveToFirebase();
-                    console.log('Drawing data saved with', allPaths.length, 'paths');
-                } catch (error) {
-                    console.error('Error saving drawing data:', error);
-                }
-            }
-        }
-
-        function loadDrawingData() {
-            if (!drawingData || !ctx || !canvas) return;
+        function renderCharacterSelection() {
+            const characterGrid = document.getElementById('characterGrid');
+            if (!characterGrid) return;
             
-            try {
-                // Try to parse as new format first
-                const data = JSON.parse(drawingData);
+            characterGrid.innerHTML = '';
+            
+            roles.forEach(role => {
+                if (role === '无') return;
                 
-                if (data.version === 2 && data.paths) {
-                    // New path-based format
-                    allPaths = JSON.parse(data.paths);
-                    redrawCanvas();
-                    console.log('Loaded', allPaths.length, 'paths from new format');
-                } else if (data.image) {
-                    // Fallback to image format
-                    const img = new Image();
-                    img.onload = function() {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0);
-                        console.log('Loaded drawing from image format');
-                    };
-                    img.src = data.image;
-                }
-            } catch (e) {
-                // Fallback: treat as direct image data (old format)
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-                    console.log('Loaded drawing from legacy format');
-                };
-                img.onerror = function() {
-                    console.error('Error loading drawing data');
-                };
-                img.src = drawingData;
-            }
-        }
-
-
-
-        function renderSequenceGrid() {
-            const sequenceGrid = document.getElementById('sequenceGrid');
-            if (!sequenceGrid) return;
-            
-            console.log('Rendering speech sequence...');
-            console.log('Selected characters:', selectedCharacters);
-            console.log('Current sequence:', speechSequence);
-            
-            // Get all selected characters except "无"
-            const availableCharacters = Array.from(selectedCharacters).filter(char => char !== '无');
-            
-            // Initialize sequence if empty, but only with characters that have skills or are important
-            if (speechSequence.length === 0 && availableCharacters.length > 0) {
-                speechSequence = [...availableCharacters];
-            }
-            
-            // Remove characters from sequence that are no longer selected
-            speechSequence = speechSequence.filter(char => selectedCharacters.has(char));
-            
-            // Add newly selected characters to the end of sequence
-            availableCharacters.forEach(char => {
-                if (!speechSequence.includes(char)) {
-                    speechSequence.push(char);
-                }
-            });
-            
-            if (speechSequence.length === 0) {
-                sequenceGrid.innerHTML = '<div class="sequence-empty">Select characters above to create speech sequence</div>';
-                return;
-            }
-            
-            // Render sequence items
-            sequenceGrid.innerHTML = '';
-            
-            speechSequence.forEach((character, index) => {
-                const characterData_item = characterData[character];
-                const bgColor = getSequenceItemColor(characterData_item?.color);
+                const item = document.createElement('div');
+                item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
                 
-                const sequenceItem = document.createElement('div');
-                sequenceItem.className = 'sequence-item';
-                sequenceItem.draggable = true;
-                sequenceItem.dataset.character = character;
-                sequenceItem.dataset.index = index;
-                
-                sequenceItem.style.background = bgColor.background;
-                sequenceItem.style.borderColor = bgColor.border;
-                
-                sequenceItem.innerHTML = `
-                    <div class="sequence-number">${index + 1}</div>
-                    <div class="sequence-character">${character}</div>
+                const character = characterData[role];
+                item.innerHTML = `
+                    <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
+                    <div class="character-name">${role}</div>
+                    <div class="character-emoji">${character.emoji}</div>
                 `;
                 
-                // Add drag event listeners
-                addDragEventListeners(sequenceItem);
+                item.onclick = function() {
+                    if (selectedCharacters.has(role)) {
+                        selectedCharacters.delete(role);
+                    } else {
+                        selectedCharacters.add(role);
+                    }
+                    renderCharacterSelection();
+                };
                 
-                sequenceGrid.appendChild(sequenceItem);
-            });
-            
-            console.log('Sequence rendered with', speechSequence.length, 'characters');
-        }
-
-        function getSequenceItemColor(characterColor) {
-            if (!characterColor) return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
-            
-            if (characterColor.includes('killer') || characterColor === 'vampire') {
-                return { background: 'rgba(231, 76, 60, 0.3)', border: 'rgba(231, 76, 60, 0.6)' };
-            } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
-                return { background: 'rgba(255, 215, 0, 0.3)', border: 'rgba(255, 215, 0, 0.6)' };
-            } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
-                return { background: 'rgba(33, 150, 243, 0.3)', border: 'rgba(33, 150, 243, 0.6)' };
-            }
-            return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
-        }
-
-        function addDragEventListeners(element) {
-            // Mouse events
-            element.addEventListener('dragstart', handleDragStart);
-            element.addEventListener('dragover', handleDragOver);
-            element.addEventListener('drop', handleDrop);
-            element.addEventListener('dragend', handleDragEnd);
-            
-            // Touch events for mobile/iPad (sequence drag and drop - different from canvas)
-            element.addEventListener('touchstart', handleSequenceTouchStart);
-            element.addEventListener('touchmove', handleSequenceTouchMove);
-            element.addEventListener('touchend', handleSequenceTouchEnd);
-        }
-
-        let draggedElement = null;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        function handleDragStart(e) {
-            draggedElement = e.target;
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', e.target.outerHTML);
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            const target = e.target.closest('.sequence-item');
-            if (target && target !== draggedElement) {
-                target.classList.add('drag-over');
-            }
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            
-            const target = e.target.closest('.sequence-item');
-            if (target && draggedElement && target !== draggedElement) {
-                const draggedIndex = parseInt(draggedElement.dataset.index);
-                const targetIndex = parseInt(target.dataset.index);
-                
-                // Reorder the sequence array
-                const draggedCharacter = speechSequence[draggedIndex];
-                speechSequence.splice(draggedIndex, 1);
-                speechSequence.splice(targetIndex, 0, draggedCharacter);
-                
-                renderSequenceGrid();
-                saveToFirebase();
-            }
-            
-            // Clean up
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over');
+                characterGrid.appendChild(item);
             });
         }
 
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            draggedElement = null;
-        }
-
-        // Touch event handlers for mobile/iPad (for drag and drop, not drawing)
-        function handleSequenceTouchStart(e) {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            draggedElement = e.target.closest('.sequence-item');
-            if (draggedElement) {
-                draggedElement.classList.add('dragging');
-            }
-        }
-
-        function handleSequenceTouchMove(e) {
-            e.preventDefault();
-            if (!draggedElement) return;
-            
-            const touch = e.touches[0];
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const target = elementBelow?.closest('.sequence-item');
-            
-            // Clear previous highlights
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over');
-            });
-            
-            if (target && target !== draggedElement) {
-                target.classList.add('drag-over');
-            }
-        }
-
-        function handleSequenceTouchEnd(e) {
-            if (!draggedElement) return;
-            
-            const touch = e.changedTouches[0];
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const target = elementBelow?.closest('.sequence-item');
-            
-            if (target && target !== draggedElement) {
-                const draggedIndex = parseInt(draggedElement.dataset.index);
-                const targetIndex = parseInt(target.dataset.index);
-                
-                // Reorder the sequence array
-                const draggedCharacter = speechSequence[draggedIndex];
-                speechSequence.splice(draggedIndex, 1);
-                speechSequence.splice(targetIndex, 0, draggedCharacter);
-                
-                renderSequenceGrid();
-                saveToFirebase();
-            }
-            
-            // Clean up
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over', 'dragging');
-            });
-            
-            draggedElement = null;
-        }
-
-        function checkWinConditions() {
-            const alivePlayers = players.filter(p => p.status === 'alive');
-            const aliveByColor = {
-                red: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && (color.includes('killer') || color === 'vampire');
-                }).length,
-                yellow: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && ['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(color);
-                }).length,
-                blue: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && ['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(color);
-                }).length
-            };
-            
-            // Good guys win if all red characters are dead
-            const goodGuysWin = aliveByColor.red === 0 && (aliveByColor.yellow > 0 || aliveByColor.blue > 0);
-            
-            // Killers win if:
-            // 1. All yellow are dead OR all blue are dead (and there are red players alive)
-            // 2. OR if there are exactly 2 reds, 1 yellow, and 1 blue left
-            const killersWin = aliveByColor.red > 0 && (
-                aliveByColor.yellow === 0 || 
-                aliveByColor.blue === 0 ||
-                (aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1)
-            );
-            
-            return { goodGuysWin, killersWin, aliveByColor };
-        }
-
-        function renderWinConditions() {
-            const winConditionsGrid = document.getElementById('winConditionsGrid');
-            if (!winConditionsGrid) return;
-            
-            const { goodGuysWin, killersWin, aliveByColor } = checkWinConditions();
-            
-            // Check if the specific 2-1-1 condition is met
-            const specialKillerWin = aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1;
-            
-            let killerWinReason;
-            if (killersWin) {
-                if (specialKillerWin) {
-                    killerWinReason = 'KILLERS WIN! (2 Reds + 1 Yellow + 1 Blue)';
-                } else if (aliveByColor.yellow === 0) {
-                    killerWinReason = 'KILLERS WIN! (All Yellow Dead)';
-                } else if (aliveByColor.blue === 0) {
-                    killerWinReason = 'KILLERS WIN! (All Blue Dead)';
-                } else {
-                    killerWinReason = 'KILLERS WIN!';
+        function selectAllCharacters() {
+            roles.forEach(role => {
+                if (role !== '无') {
+                    selectedCharacters.add(role);
                 }
-            } else {
-                killerWinReason = `Red: ${aliveByColor.red}, Yellow: ${aliveByColor.yellow}, Blue: ${aliveByColor.blue}`;
-            }
+            });
+            renderCharacterSelection();
+        }
+        
+        function deselectAllCharacters() {
+            selectedCharacters.clear();
+            selectedCharacters.add('无');
+            renderCharacterSelection();
+        }
+        
+        function selectEssentialOnly() {
+            selectedCharacters.clear();
+            selectedCharacters.add('无');
+            selectedCharacters.add('狼人'); // Essential
+            selectedCharacters.add('村民'); // Essential
+            renderCharacterSelection();
+        }
+
+        function showPlayerView() {
+            currentView = 'player';
+            document.getElementById('playerView').classList.remove('hidden');
+            document.getElementById('gmView').classList.add('hidden');
+            document.getElementById('playerViewBtn').classList.add('active');
+            document.getElementById('gmViewBtn').classList.remove('active');
+            renderPlayerView();
+        }
+
+        function showGMView() {
+            currentView = 'gm';
+            document.getElementById('playerView').classList.add('hidden');
+            document.getElementById('gmView').classList.remove('hidden');
+            document.getElementById('playerViewBtn').classList.remove('active');
+            document.getElementById('gmViewBtn').classList.add('active');
+            renderCharacterSelection();
             
-            winConditionsGrid.innerHTML = `
-                <div class="win-condition-item">
-                    <div class="win-title good-guys">Good Guys Victory</div>
-                    <div class="win-description">All red characters (killers) must be eliminated</div>
-                    <div class="win-status ${goodGuysWin ? 'good-win' : 'ongoing'}">
-                        ${goodGuysWin ? 'GOOD GUYS WIN!' : `Red characters alive: ${aliveByColor.red}`}
-                    </div>
-                </div>
-                
-                <div class="win-condition-item">
-                    <div class="win-title killers">Killers Victory</div>
-                    <div class="win-description">All yellow characters dead OR all blue characters dead OR 2 reds + 1 yellow + 1 blue remaining</div>
-                    <div class="win-status ${killersWin ? 'killer-win' : 'ongoing'}">
-                        ${killerWinReason}
-                    </div>
-                </div>
-            `;
-        }
-
-        function addPlayer() {
-            if (players.length < 15) {
-                players.push({
-                    number: players.length + 1,
-                    role: '无',
-                    status: 'alive'
-                });
-                renderAdminView();
-                renderPlayerView();
-                saveToFirebase();
-            }
-        }
-
-        function removePlayer(playerNumber) {
-            if (players.length > 10 && playerNumber > 10) {
-                players = players.filter(player => player.number !== playerNumber);
-                players.forEach((player, index) => {
-                    player.number = index + 1;
-                });
-                renderAdminView();
-                renderPlayerView();
-                saveToFirebase();
-            }
+            // Initialize canvas after DOM is ready
+            setTimeout(() => {
+                initializeCanvas();
+            }, 100);
         }
 
         function renderPlayerView() {
@@ -1985,458 +1376,22 @@
             
             grid.innerHTML = '';
             
-            players.forEach((player, index) => {
+            for (let i = 1; i <= 10; i++) {
                 const card = document.createElement('div');
-                card.className = `player-card ${player.status === 'alive' ? 'player-alive' : 'player-dead'}`;
+                card.className = `player-card player-alive`;
                 card.innerHTML = `
-                    <div class="player-number">${player.number}</div>
-                    <div class="player-status ${player.status === 'alive' ? 'status-alive' : 'status-dead'}">
-                        ${player.status.toUpperCase()}
-                    </div>
+                    <div class="player-number">${i}</div>
+                    <div class="player-status status-alive">ALIVE</div>
                 `;
-                
-                // Only allow status toggle in player view if you're not in GM mode
-                if (currentView === 'player') {
-                    card.onclick = function() {
-                        // Players can't toggle status in player view
-                        // This is just for display
-                    };
-                }
-                
                 grid.appendChild(card);
-            });
-            
-            renderDeadList();
-        }
-
-        function renderAdminView() {
-            console.log('=== RENDERING ADMIN VIEW ===');
-            const grid = document.getElementById('adminGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            players.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${getRoleClass(player.role)}`;
-                
-                const currentRole = player.role;
-                const emoji = characterData[currentRole]?.emoji || '';
-                const availableRoles = getAvailableRoles(index);
-                
-                // Create character selection icons
-                const characterIcons = availableRoles.map(role => {
-                    const isSelected = role === currentRole;
-                    const roleText = role.length >= 2 ? role.substring(0, 2) : role;
-                    const characterColor = characterData[role]?.color || 'none';
-                    
-                    // Get colors based on character type
-                    let bgColor, borderColor;
-                    if (characterColor.includes('killer') || characterColor === 'vampire') {
-                        // Red characters
-                        bgColor = isSelected ? 'rgba(231, 76, 60, 0.8)' : 'rgba(231, 76, 60, 0.3)';
-                        borderColor = isSelected ? '#e74c3c' : 'rgba(231, 76, 60, 0.6)';
-                    } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
-                        // Yellow characters
-                        bgColor = isSelected ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.3)';
-                        borderColor = isSelected ? '#ffd700' : 'rgba(255, 215, 0, 0.6)';
-                    } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
-                        // Blue characters
-                        bgColor = isSelected ? 'rgba(33, 150, 243, 0.8)' : 'rgba(33, 150, 243, 0.3)';
-                        borderColor = isSelected ? '#2196f3' : 'rgba(33, 150, 243, 0.6)';
-                    } else {
-                        // None/default
-                        bgColor = isSelected ? 'rgba(107, 114, 128, 0.8)' : 'rgba(107, 114, 128, 0.3)';
-                        borderColor = isSelected ? '#6b7280' : 'rgba(107, 114, 128, 0.6)';
-                    }
-                    
-                    return `
-                        <div class="char-icon ${isSelected ? 'selected' : ''}" 
-                             onclick="selectCharacterForPlayer(${index}, '${role}')"
-                             title="${role}"
-                             style="
-                                display: inline-block;
-                                width: 36px;
-                                height: 32px;
-                                margin: 2px;
-                                background: ${bgColor};
-                                border: 2px solid ${borderColor};
-                                border-radius: 6px;
-                                cursor: pointer;
-                                transition: all 0.2s ease;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 12px;
-                                font-weight: bold;
-                                color: white;
-                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-                                user-select: none;
-                                -webkit-user-select: none;
-                                -webkit-tap-highlight-color: transparent;
-                             "
-                             onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)'"
-                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
-                        >${roleText}</div>
-                    `;
-                }).join('');
-                
-                card.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                        <div class="player-number" style="margin: 0;">${player.number}</div>
-                        <div class="player-status-square ${player.status === 'alive' ? 'status-alive' : 'status-dead'}" 
-                             onclick="toggleStatus(${index})"
-                             style="
-                                min-width: 80px;
-                                height: 60px;
-                                border-radius: 12px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-size: 14px;
-                                font-weight: bold;
-                                transition: all 0.3s ease;
-                                padding: 0 12px;
-                                ${player.status === 'alive' ? 
-                                    'background: linear-gradient(45deg, #27ae60, #2ecc71);' : 
-                                    'background: linear-gradient(45deg, #e74c3c, #c0392b);'
-                                }
-                             "
-                             onmouseover="this.style.transform='scale(1.05)'"
-                             onmouseout="this.style.transform='scale(1)'"
-                        >
-                            ${player.status === 'alive' ? 'Alive' : 'Dead'}
-                        </div>
-                    </div>
-                    <div class="current-role" style="
-                        background: rgba(255, 255, 255, 0.2);
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        border-radius: 8px;
-                        padding: 8px 12px;
-                        color: white;
-                        font-size: 1em;
-                        margin-bottom: 10px;
-                        text-align: center;
-                        min-height: 40px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        font-weight: bold;
-                    ">
-                        <span style="font-size: 1.2em;">${emoji}</span>
-                        <span>${currentRole}</span>
-                    </div>
-                    <div class="character-selection" style="
-                        display: flex;
-                        flex-wrap: wrap;
-                        justify-content: center;
-                        gap: 2px;
-                        margin-bottom: 10px;
-                        padding: 5px;
-                        background: rgba(0, 0, 0, 0.2);
-                        border-radius: 6px;
-                        min-height: 40px;
-                        align-items: center;
-                    ">
-                        ${characterIcons}
-                    </div>
-                `;
-                
-                if (player.number > 10) {
-                    const removeIcon = document.createElement('div');
-                    removeIcon.className = 'remove-icon';
-                    removeIcon.innerHTML = '×';
-                    removeIcon.onclick = function(e) {
-                        e.stopPropagation();
-                        removePlayer(player.number);
-                    };
-                    card.appendChild(removeIcon);
-                }
-                
-                grid.appendChild(card);
-            });
-            
-            if (players.length < 15) {
-                for (let i = players.length + 1; i <= 15; i++) {
-                    const addCard = document.createElement('div');
-                    addCard.className = 'add-player-card';
-                    addCard.innerHTML = '<div class="add-icon">+</div>';
-                    addCard.onclick = function() { addPlayer(); };
-                    grid.appendChild(addCard);
-                    if (players.length >= 14) break;
-                }
             }
-            
-            console.log('About to render sequence grid...');
-            renderSequenceGrid();
-            renderWinConditions();
-            console.log('=== ADMIN VIEW RENDERED ===');
-        }
-
-        function renderDeadList() {
-            const deadList = document.getElementById('deadList');
-            if (!deadList) return;
-            
-            // Get dead players in the order they died
-            const deadPlayersInOrder = [];
-            
-            // First, add players in death order
-            deathOrder.forEach(playerNumber => {
-                const player = players.find(p => p.number === playerNumber && p.status === 'dead');
-                if (player) {
-                    deadPlayersInOrder.push(player);
-                }
-            });
-            
-            // Then add any dead players not in death order (shouldn't happen, but just in case)
-            players.forEach(player => {
-                if (player.status === 'dead' && !deadPlayersInOrder.find(p => p.number === player.number)) {
-                    deadPlayersInOrder.push(player);
-                }
-            });
-            
-            if (deadPlayersInOrder.length === 0) {
-                deadList.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No casualties yet...</div>';
-            } else {
-                deadList.innerHTML = deadPlayersInOrder.map(player => 
-                    `<div class="dead-player">Player ${player.number}</div>`
-                ).join('');
-            }
-        }
-
-        function toggleStatus(index) {
-            console.log('Toggling status for player', index, 'from', players[index].status);
-            const player = players[index];
-            const wasAlive = player.status === 'alive';
-            
-            player.status = wasAlive ? 'dead' : 'alive';
-            
-            // Track death order
-            if (wasAlive) {
-                // Player just died - add to death order if not already there
-                if (!deathOrder.includes(player.number)) {
-                    deathOrder.push(player.number);
-                }
-            } else {
-                // Player came back to life - remove from death order
-                deathOrder = deathOrder.filter(num => num !== player.number);
-            }
-            
-            console.log('New status:', player.status);
-            console.log('Death order:', deathOrder);
-            
-            // Immediately re-render views
-            renderAdminView();
-            renderPlayerView();
-            
-            // Save to Firebase
-            saveToFirebase();
-        }
-
-        function selectCharacterForPlayer(playerIndex, characterRole) {
-            console.log(`Assigning ${characterRole} to player ${playerIndex + 1}`);
-            players[playerIndex].role = characterRole;
-            renderAdminView();
-            renderSequenceGrid();
-            saveToFirebase();
-        }
-
-        function resetAll() {
-            players.forEach(player => {
-                player.role = '无';
-                player.status = 'alive';
-            });
-            
-            players = players.slice(0, 10);
-            players.forEach((player, index) => {
-                player.number = index + 1;
-            });
-            
-            speechSequence = []; // Clear speech sequence
-            drawingData = ''; // Clear drawing
-            deathOrder = [];
-            
-            // Clear the canvas
-            clearCanvas();
-            
-            renderAdminView();
-            renderPlayerView();
-            renderSequenceGrid();
-            saveToFirebase();
-        }
-
-        // ===========================================
-        // TIMER FUNCTIONS
-        // ===========================================
-
-        // Audio context for tick sound
-        let audioContext = null;
-
-        function initAudioContext() {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    console.log('Web Audio API not supported');
-                }
-            }
-        }
-
-        function playTickSound() {
-            try {
-                // Simple beep using Web Audio API
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                
-                // For iOS/Safari - resume context if suspended
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().catch(console.log);
-                }
-                
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                // Beep sound settings
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                // Volume and duration
-                gainNode.gain.value = 0.05; // Quiet beep
-                
-                // Play for 100ms
-                const now = audioContext.currentTime;
-                oscillator.start(now);
-                oscillator.stop(now + 0.1);
-                
-                console.log('Tick sound played');
-                
-            } catch (error) {
-                // Fallback: try to play a system sound if possible
-                try {
-                    // This may not work on all browsers but worth trying
-                    navigator.vibrate && navigator.vibrate(50);
-                } catch (e) {
-                    console.log('Audio not available');
-                }
-            }
-        }
-
-        function updateTimerDisplay() {
-            const timerDisplay = document.getElementById('timerDisplay');
-            const timerDisplayGM = document.getElementById('timerDisplayGM');
-            
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timerDisplay) timerDisplay.textContent = timeString;
-            if (timerDisplayGM) timerDisplayGM.textContent = timeString;
-        }
-
-        function startTimer() {
-            if (!isTimerRunning) {
-                isTimerRunning = true;
-                const startBtn = document.getElementById('startBtn');
-                const pauseBtn = document.getElementById('pauseBtn');
-                const startBtnGM = document.getElementById('startBtnGM');
-                const pauseBtnGM = document.getElementById('pauseBtnGM');
-                
-                if (startBtn) startBtn.disabled = true;
-                if (pauseBtn) pauseBtn.disabled = false;
-                if (startBtnGM) startBtnGM.disabled = true;
-                if (pauseBtnGM) pauseBtnGM.disabled = false;
-                
-                timerInterval = setInterval(function() {
-                    timeLeft--;
-                    
-                    // Add tick sound for last 10 seconds
-                    if (timeLeft <= 10 && timeLeft > 0) {
-                        playTickSound();
-                    }
-                    
-                    updateTimerDisplay();
-                    saveToFirebase(); // Save timer state
-                    
-                    if (timeLeft <= 0) {
-                        pauseTimer();
-                        timeLeft = 0;
-                        updateTimerDisplay();
-                    }
-                }, 1000);
-            }
-        }
-
-        function pauseTimer() {
-            if (isTimerRunning) {
-                isTimerRunning = false;
-                clearInterval(timerInterval);
-                
-                const startBtn = document.getElementById('startBtn');
-                const pauseBtn = document.getElementById('pauseBtn');
-                const startBtnGM = document.getElementById('startBtnGM');
-                const pauseBtnGM = document.getElementById('pauseBtnGM');
-                
-                if (startBtn) startBtn.disabled = false;
-                if (pauseBtn) pauseBtn.disabled = true;
-                if (startBtnGM) startBtnGM.disabled = false;
-                if (pauseBtnGM) pauseBtnGM.disabled = true;
-                
-                saveToFirebase(); // Save timer state
-            }
-        }
-
-        function resetTimer() {
-            pauseTimer();
-            timeLeft = 60;
-            updateTimerDisplay();
-            
-            const startBtn = document.getElementById('startBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const startBtnGM = document.getElementById('startBtnGM');
-            const pauseBtnGM = document.getElementById('pauseBtnGM');
-            
-            if (startBtn) startBtn.disabled = false;
-            if (pauseBtn) pauseBtn.disabled = true;
-            if (startBtnGM) startBtnGM.disabled = false;
-            if (pauseBtnGM) pauseBtnGM.disabled = true;
-            
-            saveToFirebase(); // Save timer state
         }
 
         // Initialize the page
         window.addEventListener('load', function() {
             console.log('Page loaded, initializing...');
-            
-            // Start with player view
-            showPlayerView();
-            
-            // Initialize timer display
-            updateTimerDisplay();
-            const pauseBtn = document.getElementById('pauseBtn');
-            const pauseBtnGM = document.getElementById('pauseBtnGM');
-            if (pauseBtn) pauseBtn.disabled = true;
-            if (pauseBtnGM) pauseBtnGM.disabled = true;
-            
-            // Wait a moment for Firebase to fully initialize, then set up listeners
-            setTimeout(function() {
-                loadFromFirebase();
-            }, 1000);
-            
-            console.log('Game interface loaded successfully with enhanced Apple Pencil support');
+            showPlayerView(); // Start with player view
         });
-
-        // Auto-save every 30 seconds as backup
-        setInterval(function() {
-            if (isFirebaseConnected) {
-                saveToFirebase();
-            }
-        }, 30000);
 
     </script>
 </body>
