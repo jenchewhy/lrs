@@ -278,6 +278,41 @@
         .none::before { background: linear-gradient(135deg, #374151, #6b7280); }
         .none { border-color: #6b7280; }
         
+        .role-dropdown {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 1em;
+            margin-bottom: 10px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .role-dropdown option {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .skills-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .script-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+        
         .character-selection-section {
             background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
@@ -289,8 +324,8 @@
         
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
         
@@ -298,15 +333,13 @@
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
-            padding: 12px 8px;
+            padding: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
-            min-height: 50px;
         }
         
         .character-item:hover {
@@ -315,9 +348,9 @@
         }
         
         .character-item.selected {
-            border-color: #27ae60;
-            background: linear-gradient(135deg, rgba(39, 174, 96, 0.4), rgba(46, 204, 113, 0.3));
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            border-color: #2196f3;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(25, 118, 210, 0.3));
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
             transform: translateY(-2px);
         }
         
@@ -336,16 +369,20 @@
         }
         
         .character-item.selected .character-checkbox {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            background: linear-gradient(45deg, #2196f3, #1976d2);
             color: white;
-            border-color: #27ae60;
-            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.5);
+            border-color: #2196f3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.5);
             transform: scale(1.1);
         }
         
         .character-item.selected .character-name {
-            color: #27ae60;
+            color: #2196f3;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-item.selected .character-skill {
+            color: rgba(33, 150, 243, 0.8);
         }
         
         .character-item.selected .character-emoji {
@@ -363,6 +400,27 @@
         .character-emoji {
             font-size: 1.2em;
             flex-shrink: 0;
+        }
+        
+        /* Force green colors for character selection - override any conflicts */
+        .character-selection-section .character-item.selected {
+            border-color: #27ae60 !important;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.4), rgba(46, 204, 113, 0.3)) !important;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4) !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-checkbox {
+            background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+            border-color: #27ae60 !important;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.5) !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-name {
+            color: #27ae60 !important;
+        }
+        
+        .character-selection-section .character-item.selected .character-skill {
+            color: rgba(39, 174, 96, 0.8) !important;
         }
         
         .character-controls {
@@ -402,13 +460,81 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         
-        .skills-section {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        .script-content {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .script-phase {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .script-phase h4 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .script-phase#nightPhase {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .script-phase#nightPhase h4 {
+            color: #2196f3;
+        }
+        
+        .script-phase ol, .script-phase ul {
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .script-phase li {
+            margin-bottom: 8px;
+        }
+        
+        .script-phase strong {
+            color: #fff;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .script-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            margin: 2px;
+        }
+        
+        .script-btn.green {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        
+        .script-btn.red {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .script-btn.yellow {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+        
+        .script-btn.blue {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+        
+        .script-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         
         .sequence-grid {
@@ -416,13 +542,67 @@
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
-            min-height: 80px;
+            min-                                height: 60px;
             padding: 15px;
             background: rgba(0, 0, 0, 0.2);
             border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             align-items: flex-start;
             align-content: flex-start;
+        }
+        
+        .sequence-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: move;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            min-height: 40px;
+            position: relative;
+        }
+        
+        .sequence-item:active {
+            cursor: grabbing;
+        }
+        
+        .sequence-item.dragging {
+            opacity: 0.7;
+            transform: rotate(2deg) scale(1.05);
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sequence-item.drag-over {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .sequence-number {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .sequence-character {
+            color: white;
+            font-size: 14px;
         }
         
         .sequence-empty {
@@ -635,7 +815,7 @@
         /* Enhanced Drawing Canvas Styles for iPad Pro */
         #drawingCanvas {
             width: 100%;
-            aspect-ratio: 5/3;
+            height: 300px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
@@ -653,30 +833,6 @@
         }
         
         @media (max-width: 768px) {
-            .character-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
-            }
-            
-            .character-item {
-                padding: 10px 6px;
-                min-height: 45px;
-            }
-            
-            .character-name {
-                font-size: 0.8em;
-            }
-            
-            .character-checkbox {
-                width: 16px;
-                height: 16px;
-                font-size: 10px;
-            }
-            
-            .character-emoji {
-                font-size: 1em;
-            }
-            
             .player-number {
                 font-size: 3em;
             }
@@ -690,34 +846,18 @@
                 padding: 15px;
             }
         }
-        
-        @media (max-width: 480px) {
-            .character-grid {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 4px;
-            }
-            
-            .character-item {
-                padding: 12px 8px;
-                min-height: 50px;
-            }
-            
-            .character-name {
-                font-size: 0.9em;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Firebase Status Indicator -->
     <div id="firebaseStatus" class="firebase-status firebase-disconnected">
-        🔥 Disconnected
+        🔥 Connecting...
     </div>
 
     <div class="header">
         <h1>🔪 The Killer Game 🔪</h1>
         <div class="view-selector">
-            <button class="view-btn active" id="playerViewBtn" onclick="showPlayerView()">Player View</button>
+            <button class="view-btn" id="playerViewBtn" onclick="showPlayerView()">Player View</button>
             <button class="view-btn" id="gmViewBtn" onclick="showGMView()">GM View</button>
         </div>
     </div>
@@ -770,9 +910,27 @@
             <div class="skills-section">
                 <h3 style="margin-bottom: 15px; font-size: 1.3em;">🎤 Speech Sequence</h3>
                 <div class="sequence-grid" id="sequenceGrid">
-                    <div class="sequence-empty">Select characters above to create speech sequence</div>
+                    <!-- Speech sequence will be populated dynamically -->
                 </div>
-
+                <textarea 
+                    id="sequenceNotes" 
+                    placeholder="Add notes about the speech sequence..."
+                    style="
+                        width: 100%;
+                        min-height: 80px;
+                        margin-top: 15px;
+                        padding: 12px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 14px;
+                        font-family: inherit;
+                        resize: vertical;
+                        box-sizing: border-box;
+                    "
+                    onchange="saveSequenceNotes(this.value)"
+                ></textarea>
                 
                 <div class="drawing-section" style="margin-top: 20px;">
                     <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
@@ -796,16 +954,6 @@
                             width: 80px;
                         ">
                         <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 20px;">3px</span>
-                        <button id="eraserBtn" onclick="toggleEraser()" style="
-                            background: linear-gradient(45deg, #f39c12, #e67e22);
-                            border: none;
-                            border-radius: 4px;
-                            color: white;
-                            padding: 6px 12px;
-                            cursor: pointer;
-                            font-size: 12px;
-                            font-weight: bold;
-                        ">Eraser</button>
                         <button onclick="clearCanvas()" style="
                             background: linear-gradient(45deg, #e74c3c, #c0392b);
                             border: none;
@@ -820,7 +968,7 @@
                     <canvas 
                         id="drawingCanvas" 
                         width="800" 
-                        height="800"
+                        height="400"
                     ></canvas>
                 </div>
             </div>
@@ -852,8 +1000,60 @@
         </div>
     </div>
 
+    <!-- Firebase CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+
     <script>
-        // Game data
+        // ===========================================
+        // FIREBASE CONFIGURATION
+        // ===========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDv5cOm9FY_iCl1h4l5pnEYdYRBjwlTMGw",
+            authDomain: "the-killer-game-f86f6.firebaseapp.com",
+            databaseURL: "https://the-killer-game-f86f6-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "the-killer-game-f86f6",
+            storageBucket: "the-killer-game-f86f6.firebasestorage.app",
+            messagingSenderId: "70683989632",
+            appId: "1:70683989632:web:a12991a0c3c8cf35db3865"
+        };
+
+        // Initialize Firebase
+        let database;
+        let isFirebaseConnected = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            
+            // Test connection
+            database.ref('.info/connected').on('value', function(snapshot) {
+                isFirebaseConnected = snapshot.val();
+                updateFirebaseStatus();
+            });
+            
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            updateFirebaseStatus();
+        }
+
+        function updateFirebaseStatus() {
+            const statusElement = document.getElementById('firebaseStatus');
+            if (isFirebaseConnected) {
+                statusElement.textContent = '🔥 Connected';
+                statusElement.className = 'firebase-status firebase-connected';
+            } else {
+                statusElement.textContent = '🔥 Disconnected';
+                statusElement.className = 'firebase-status firebase-disconnected';
+            }
+        }
+
+        // ===========================================
+        // GAME DATA AND LOGIC
+        // ===========================================
+
+        // Updated character data based on your table
         const characterData = {
             '无': { skill: '', color: 'none', emoji: '' },
             // Red Characters (Bright Red)
@@ -880,35 +1080,26 @@
             '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
             '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
             '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
-            '其他神': { skill: 'Other', color: 'detective', emoji: '🟡' },
             '村民': { skill: '', color: 'civilian', emoji: '🔵' },
             // Blue Characters
             '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
             '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
-            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' },
-            '其他民': { skill: '', color: 'civilian', emoji: '🔵' }
+            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' }
         };
 
         const roles = Object.keys(characterData);
-        const repeatableRoles = ['狼人', '村民'];
+        const repeatableRoles = ['狼人', '村民']; // Essential characters that can be repeated
         
         let players = [];
-        let selectedCharacters = new Set(['无', '狼人', '村民']);
-        let currentView = 'player';
-        let deathOrder = [];
+        let skillStates = {};
+        let selectedCharacters = new Set(['无', '狼人', '村民']); // Start with essential characters
+        let currentView = 'player'; // 'player' or 'gm'
+        let deathOrder = []; // Track the order players die
 
         // Timer variables
         let timerInterval = null;
         let timeLeft = 60;
         let isTimerRunning = false;
-
-        // Drawing canvas variables
-        let canvas = null;
-        let ctx = null;
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-        let isEraserMode = false;
 
         // Initialize with 10 players
         for (let i = 1; i <= 10; i++) {
@@ -919,279 +1110,110 @@
             });
         }
 
-        function getRoleClass(role) {
-            return characterData[role]?.color || 'none';
-        }
+        // ===========================================
+        // FIREBASE FUNCTIONS
+        // ===========================================
 
-        function getAvailableRoles(currentPlayerIndex) {
-            const usedRoles = players
-                .filter((player, index) => index !== currentPlayerIndex && player.role !== '无')
-                .map(player => player.role);
-            
-            return Array.from(selectedCharacters).filter(role => {
-                if (role === '无') return true;
-                if (repeatableRoles.includes(role)) return true;
-                return !usedRoles.includes(role);
-            });
-        }
-
-        // Drawing functions
-        function initializeCanvas() {
-            canvas = document.getElementById('drawingCanvas');
-            if (!canvas) return;
-            
-            ctx = canvas.getContext('2d');
-            if (!ctx) return;
-            
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            const penSize = document.getElementById('penSize');
-            const sizeDisplay = document.getElementById('sizeDisplay');
-            
-            if (penSize && sizeDisplay) {
-                penSize.addEventListener('input', function() {
-                    sizeDisplay.textContent = this.value + 'px';
-                });
+        function saveToFirebase() {
+            if (!isFirebaseConnected || !database) {
+                console.log('Firebase not connected, saving locally only');
+                return;
             }
-            
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            canvas.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent('mousedown', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            });
-            
-            canvas.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent('mousemove', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            });
-            
-            canvas.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                const mouseEvent = new MouseEvent('mouseup', {});
-                canvas.dispatchEvent(mouseEvent);
-            });
-        }
 
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getMousePos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            
-            const pos = getMousePos(e);
-            const penColor = document.getElementById('penColor').value;
-            const penSize = document.getElementById('penSize').value;
-            
-            if (isEraserMode) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = penSize * 2;
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = penColor;
-                ctx.lineWidth = penSize;
-            }
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function stopDrawing() {
-            if (isDrawing) {
-                isDrawing = false;
-                ctx.globalCompositeOperation = 'source-over';
-            }
-        }
-
-        function toggleEraser() {
-            isEraserMode = !isEraserMode;
-            const eraserBtn = document.getElementById('eraserBtn');
-            
-            if (isEraserMode) {
-                eraserBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
-                eraserBtn.textContent = 'Drawing';
-            } else {
-                eraserBtn.style.background = 'linear-gradient(45deg, #f39c12, #e67e22)';
-                eraserBtn.textContent = 'Eraser';
-            }
-        }
-
-        function clearCanvas() {
-            if (ctx && canvas) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        // Character selection functions
-        function renderCharacterSelection() {
-            const characterGrid = document.getElementById('characterGrid');
-            if (!characterGrid) return;
-            
-            characterGrid.innerHTML = '';
-            
-            roles.forEach(role => {
-                if (role === '无') return;
-                
-                const item = document.createElement('div');
-                item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
-                
-                const character = characterData[role];
-                item.innerHTML = `
-                    <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
-                    <div class="character-name">${role}</div>
-                    <div class="character-emoji">${character.emoji}</div>
-                `;
-                
-                item.onclick = function() {
-                    if (selectedCharacters.has(role)) {
-                        selectedCharacters.delete(role);
-                    } else {
-                        selectedCharacters.add(role);
-                    }
-                    renderCharacterSelection();
-                    renderAdminView();
+            try {
+                const gameData = {
+                    players: players,
+                    speechSequence: speechSequence,
+                    sequenceNotes: sequenceNotes,
+                    drawingData: drawingData,
+                    selectedCharacters: Array.from(selectedCharacters),
+                    deathOrder: deathOrder,
+                    timerState: {
+                        timeLeft: timeLeft,
+                        isRunning: isTimerRunning
+                    },
+                    lastUpdated: Date.now()
                 };
-                
-                characterGrid.appendChild(item);
-            });
-        }
 
-        function selectAllCharacters() {
-            roles.forEach(role => {
-                if (role !== '无') {
-                    selectedCharacters.add(role);
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-        }
-        
-        function deselectAllCharacters() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            players.forEach(player => {
-                player.role = '无';
-            });
-            renderCharacterSelection();
-            renderAdminView();
-        }
-        
-        function selectEssentialOnly() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            selectedCharacters.add('狼人');
-            selectedCharacters.add('村民');
-            players.forEach(player => {
-                if (!selectedCharacters.has(player.role)) {
-                    player.role = '无';
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-        }
-
-        // Player management functions
-        function addPlayer() {
-            if (players.length < 15) {
-                players.push({
-                    number: players.length + 1,
-                    role: '无',
-                    status: 'alive'
-                });
-                renderAdminView();
-                renderPlayerView();
+                console.log('Saving to Firebase:', gameData);
+                database.ref('gameState').set(gameData);
+                console.log('Game state saved to Firebase successfully');
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
             }
         }
 
-        function removePlayer(playerNumber) {
-            if (players.length > 10 && playerNumber > 10) {
-                players = players.filter(player => player.number !== playerNumber);
-                players.forEach((player, index) => {
-                    player.number = index + 1;
-                });
-                renderAdminView();
-                renderPlayerView();
+        function loadFromFirebase() {
+            if (!isFirebaseConnected || !database) {
+                console.log('Firebase not connected, using local data');
+                return;
             }
-        }
 
-        function toggleStatus(index) {
-            const player = players[index];
-            const wasAlive = player.status === 'alive';
-            
-            player.status = wasAlive ? 'dead' : 'alive';
-            
-            if (wasAlive) {
-                if (!deathOrder.includes(player.number)) {
-                    deathOrder.push(player.number);
+            database.ref('gameState').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    console.log('Loading game state from Firebase', data);
+                    
+                    // Update players
+                    if (data.players) {
+                        players = data.players;
+                        console.log('Updated players:', players);
+                    }
+                    
+                    // Update speech sequence
+                    if (data.speechSequence) {
+                        speechSequence = data.speechSequence;
+                    }
+                    
+                    // Update sequence notes
+                    if (data.sequenceNotes) {
+                        sequenceNotes = data.sequenceNotes;
+                        const notesTextarea = document.getElementById('sequenceNotes');
+                        if (notesTextarea) {
+                            notesTextarea.value = sequenceNotes;
+                        }
+                    }
+                    
+                    // Update drawing data
+                    if (data.drawingData) {
+                        drawingData = data.drawingData;
+                        // Load drawing after a short delay to ensure canvas is ready
+                        setTimeout(() => {
+                            loadDrawingData();
+                        }, 100);
+                    }
+                    
+                    // Update selected characters
+                    if (data.selectedCharacters) {
+                        selectedCharacters = new Set(data.selectedCharacters);
+                    }
+                    
+                    // Update death order
+                    if (data.deathOrder) {
+                        deathOrder = data.deathOrder;
+                    }
+                    
+                    // Update timer (only if not currently running)
+                    if (data.timerState && !isTimerRunning) {
+                        timeLeft = data.timerState.timeLeft || 60;
+                        updateTimerDisplay();
+                    }
+                    
+                    // Always re-render both views to ensure sync
+                    renderPlayerView();
+                    if (currentView === 'gm') {
+                        renderCharacterSelection();
+                        renderAdminView();
+                        renderSequenceGrid();
+                    }
                 }
-            } else {
-                deathOrder = deathOrder.filter(num => num !== player.number);
-            }
-            
-            renderAdminView();
-            renderPlayerView();
-            renderWinConditions();
-        }
-
-        function selectCharacterForPlayer(playerIndex, characterRole) {
-            players[playerIndex].role = characterRole;
-            renderAdminView();
-        }
-
-        function resetAll() {
-            players.forEach(player => {
-                player.role = '无';
-                player.status = 'alive';
             });
-            
-            players = players.slice(0, 10);
-            players.forEach((player, index) => {
-                player.number = index + 1;
-            });
-            
-            deathOrder = [];
-            clearCanvas();
-            
-            renderAdminView();
-            renderPlayerView();
-            renderWinConditions();
         }
 
-        // View management
+        // ===========================================
+        // VIEW MANAGEMENT
+        // ===========================================
+
         function showPlayerView() {
             currentView = 'player';
             document.getElementById('playerView').classList.remove('hidden');
@@ -1207,208 +1229,563 @@
             document.getElementById('gmView').classList.remove('hidden');
             document.getElementById('playerViewBtn').classList.remove('active');
             document.getElementById('gmViewBtn').classList.add('active');
+            console.log('=== SWITCHING TO GM VIEW ===');
+            console.log('Selected characters:', selectedCharacters);
+            console.log('Current players:', players);
             renderCharacterSelection();
             renderAdminView();
-            renderWinConditions();
             
+            // Initialize canvas after DOM is ready
             setTimeout(() => {
                 initializeCanvas();
+                if (drawingData) {
+                    loadDrawingData();
+                }
             }, 100);
         }
 
-        function renderPlayerView() {
-            const grid = document.getElementById('playerGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            players.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${player.status === 'alive' ? 'player-alive' : 'player-dead'}`;
-                card.innerHTML = `
-                    <div class="player-number">${player.number}</div>
-                    <div class="player-status ${player.status === 'alive' ? 'status-alive' : 'status-dead'}">
-                        ${player.status.toUpperCase()}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-            
-            renderDeadList();
+        function getRoleClass(role) {
+            return characterData[role]?.color || 'none';
         }
 
-        function renderAdminView() {
-            const grid = document.getElementById('adminGrid');
-            if (!grid) return;
+        function renderCharacterSelection() {
+            const characterGrid = document.getElementById('characterGrid');
+            if (!characterGrid) return;
             
-            grid.innerHTML = '';
+            characterGrid.innerHTML = '';
             
-            players.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${getRoleClass(player.role)}`;
+            roles.forEach(role => {
+                if (role === '无') return;
                 
-                const currentRole = player.role;
-                const emoji = characterData[currentRole]?.emoji || '';
-                const availableRoles = getAvailableRoles(index);
+                const item = document.createElement('div');
+                item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
                 
-                const characterIcons = availableRoles.map(role => {
-                    const isSelected = role === currentRole;
-                    const roleText = role.length >= 2 ? role.substring(0, 2) : role;
-                    const characterColor = characterData[role]?.color || 'none';
-                    
-                    let bgColor, borderColor;
-                    if (characterColor.includes('killer') || characterColor === 'vampire') {
-                        bgColor = isSelected ? 'rgba(231, 76, 60, 0.8)' : 'rgba(231, 76, 60, 0.3)';
-                        borderColor = isSelected ? '#e74c3c' : 'rgba(231, 76, 60, 0.6)';
-                    } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
-                        bgColor = isSelected ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.3)';
-                        borderColor = isSelected ? '#ffd700' : 'rgba(255, 215, 0, 0.6)';
-                    } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
-                        bgColor = isSelected ? 'rgba(33, 150, 243, 0.8)' : 'rgba(33, 150, 243, 0.3)';
-                        borderColor = isSelected ? '#2196f3' : 'rgba(33, 150, 243, 0.6)';
-                    } else {
-                        bgColor = isSelected ? 'rgba(107, 114, 128, 0.8)' : 'rgba(107, 114, 128, 0.3)';
-                        borderColor = isSelected ? '#6b7280' : 'rgba(107, 114, 128, 0.6)';
-                    }
-                    
-                    return `
-                        <div class="char-icon" 
-                             onclick="selectCharacterForPlayer(${index}, '${role}')"
-                             title="${role}"
-                             style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                width: 36px;
-                                height: 32px;
-                                margin: 2px;
-                                background: ${bgColor};
-                                border: 2px solid ${borderColor};
-                                border-radius: 6px;
-                                cursor: pointer;
-                                transition: all 0.2s ease;
-                                font-size: 12px;
-                                font-weight: bold;
-                                color: white;
-                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-                                user-select: none;
-                             "
-                             onmouseover="this.style.transform='scale(1.1)'"
-                             onmouseout="this.style.transform='scale(1)'"
-                        >${roleText}</div>
-                    `;
-                }).join('');
+                const character = characterData[role];
+                item.innerHTML = `
+                    <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
+                    <div class="character-info">
+                        <div class="character-name">${role}</div>
+                        <div class="character-skill">${character.skill}</div>
+                    </div>
+                    <div class="character-emoji">${character.emoji}</div>
+                `;
                 
-                card.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                        <div class="player-number" style="margin: 0;">${player.number}</div>
-                        <div onclick="toggleStatus(${index})" style="
-                            min-width: 80px;
-                            height: 60px;
-                            border-radius: 12px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            cursor: pointer;
-                            font-size: 14px;
-                            font-weight: bold;
-                            transition: all 0.3s ease;
-                            padding: 0 12px;
-                            ${player.status === 'alive' ? 
-                                'background: linear-gradient(45deg, #27ae60, #2ecc71);' : 
-                                'background: linear-gradient(45deg, #e74c3c, #c0392b);'
+                item.onclick = function() {
+                    if (selectedCharacters.has(role)) {
+                        selectedCharacters.delete(role);
+                        players.forEach(player => {
+                            if (player.role === role) {
+                                player.role = '无';
                             }
-                         "
-                         onmouseover="this.style.transform='scale(1.05)'"
-                         onmouseout="this.style.transform='scale(1)'"
-                        >
-                            ${player.status === 'alive' ? 'Alive' : 'Dead'}
-                        </div>
-                    </div>
-                    <div style="
-                        background: rgba(255, 255, 255, 0.2);
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        border-radius: 8px;
-                        padding: 8px 12px;
-                        color: white;
-                        font-size: 1em;
-                        margin-bottom: 10px;
-                        text-align: center;
-                        min-height: 40px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        font-weight: bold;
-                    ">
-                        <span style="font-size: 1.2em;">${emoji}</span>
-                        <span>${currentRole}</span>
-                    </div>
-                    <div style="
-                        display: flex;
-                        flex-wrap: wrap;
-                        justify-content: center;
-                        gap: 2px;
-                        margin-bottom: 10px;
-                        padding: 5px;
-                        background: rgba(0, 0, 0, 0.2);
-                        border-radius: 6px;
-                        min-height: 40px;
-                        align-items: center;
-                    ">
-                        ${characterIcons}
-                    </div>
-                `;
+                        });
+                    } else {
+                        selectedCharacters.add(role);
+                    }
+                    renderCharacterSelection();
+                    renderAdminView();
+                    renderSequenceGrid(); // Update sequence when characters are selected/deselected
+                    saveToFirebase();
+                };
                 
-                if (player.number > 10) {
-                    const removeIcon = document.createElement('div');
-                    removeIcon.className = 'remove-icon';
-                    removeIcon.innerHTML = '×';
-                    removeIcon.onclick = function(e) {
-                        e.stopPropagation();
-                        removePlayer(player.number);
-                    };
-                    card.appendChild(removeIcon);
-                }
-                
-                grid.appendChild(card);
+                characterGrid.appendChild(item);
             });
+        }
+
+        function selectAllCharacters() {
+            roles.forEach(role => {
+                if (role !== '无') {
+                    selectedCharacters.add(role);
+                }
+            });
+            renderCharacterSelection();
+            renderAdminView();
+            renderSequenceGrid();
+            saveToFirebase();
+        }
+        
+        function deselectAllCharacters() {
+            selectedCharacters.clear();
+            selectedCharacters.add('无');
+            players.forEach(player => {
+                player.role = '无';
+            });
+            speechSequence = []; // Clear sequence when deselecting all
+            renderCharacterSelection();
+            renderAdminView();
+            renderSequenceGrid();
+            saveToFirebase();
+        }
+        
+        function selectEssentialOnly() {
+            selectedCharacters.clear();
+            selectedCharacters.add('无');
+            selectedCharacters.add('狼人'); // Essential
+            selectedCharacters.add('村民'); // Essential
+            players.forEach(player => {
+                if (!selectedCharacters.has(player.role)) {
+                    player.role = '无';
+                }
+            });
+            renderCharacterSelection();
+            renderAdminView();
+            renderSequenceGrid();
+            saveToFirebase();
+        }
+
+        function getAvailableRoles(currentPlayerIndex) {
+            const usedRoles = players
+                .filter((player, index) => index !== currentPlayerIndex && player.role !== '无')
+                .map(player => player.role);
             
-            if (players.length < 15) {
-                const addCard = document.createElement('div');
-                addCard.className = 'add-player-card';
-                addCard.innerHTML = '<div class="add-icon">+</div>';
-                addCard.onclick = addPlayer;
-                grid.appendChild(addCard);
+            return Array.from(selectedCharacters).filter(role => {
+                if (role === '无') return true;
+                if (repeatableRoles.includes(role)) return true;
+                return !usedRoles.includes(role);
+            });
+        }
+
+        let speechSequence = []; // Array to store the order of characters
+        let sequenceNotes = ''; // String to store notes about the sequence
+        let drawingData = ''; // String to store canvas drawing data
+
+        // Drawing canvas variables - Enhanced for Apple Pencil
+        let canvas = null;
+        let ctx = null;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let lastPressure = 0.5;
+
+        function initializeCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            if (!canvas) {
+                console.error('Canvas element not found');
+                return;
+            }
+            
+            ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get canvas context');
+                return;
+            }
+            
+            // Set up drawing settings
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.imageSmoothingEnabled = true;
+            
+            // Set up event listeners for size display
+            const penSize = document.getElementById('penSize');
+            const sizeDisplay = document.getElementById('sizeDisplay');
+            
+            if (penSize && sizeDisplay) {
+                penSize.addEventListener('input', function() {
+                    sizeDisplay.textContent = this.value + 'px';
+                });
+            }
+            
+            // Remove all existing event listeners first
+            canvas.onpointerdown = null;
+            canvas.onpointermove = null;
+            canvas.onpointerup = null;
+            canvas.onpointercancel = null;
+            canvas.onpointerleave = null;
+            
+            // Primary: Pointer Events (best for stylus support) - with proper options
+            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false, capture: true });
+            canvas.addEventListener('pointermove', handlePointerMove, { passive: false, capture: true });
+            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false, capture: true });
+            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false, capture: true });
+            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false, capture: true });
+            
+            // Disable touch events completely to avoid conflicts with pointer events
+            canvas.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
+            
+            canvas.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
+            
+            canvas.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false, capture: true });
+            
+            // Prevent context menu and selection
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, { passive: false });
+            
+            canvas.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            }, { passive: false });
+            
+            console.log('Enhanced drawing canvas initialized for iPad Pro + Apple Pencil');
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            let clientX, clientY;
+            
+            // Handle different event types
+            if (e.touches && e.touches.length > 0) {
+                // Touch event
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                // Touch end event
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                // Mouse or pointer event
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function handlePointerStart(e) {
+            // Only handle primary pointer (first touch/stylus)
+            if (e.isPrimary === false) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDrawing = true;
+            const pos = getCanvasCoordinates(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // Capture pressure for Apple Pencil
+            lastPressure = e.pressure || 0.5;
+            
+            // Set pointer capture for better tracking
+            if (canvas.setPointerCapture) {
+                canvas.setPointerCapture(e.pointerId);
+            }
+            
+            console.log('Drawing started - Pointer:', e.pointerType, 'Pressure:', e.pressure);
+        }
+
+        function handlePointerMove(e) {
+            // Only handle primary pointer and when drawing
+            if (!isDrawing || e.isPrimary === false) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const pos = getCanvasCoordinates(e);
+            const penColor = document.getElementById('penColor').value;
+            const basePenSize = parseFloat(document.getElementById('penSize').value);
+            
+            // Enhanced pressure handling for Apple Pencil
+            let pressure = e.pressure || 0.5;
+            if (pressure === 0 || pressure === 0.5) {
+                // If no pressure data, use touch force as fallback
+                if (e.force !== undefined) {
+                    pressure = Math.max(0.1, Math.min(1.0, e.force));
+                } else {
+                    pressure = 0.5;
+                }
+            }
+            
+            // Smooth pressure changes to avoid jarring transitions
+            pressure = lastPressure * 0.7 + pressure * 0.3;
+            lastPressure = pressure;
+            
+            // Apply pressure to line width (minimum 20% of base size)
+            const lineWidth = basePenSize * Math.max(0.2, pressure);
+            
+            // Apply pressure to opacity (minimum 30% opacity)
+            const opacity = Math.max(0.3, pressure);
+            
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = lineWidth;
+            ctx.globalAlpha = opacity;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function handlePointerEnd(e) {
+            if (!isDrawing) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDrawing = false;
+            ctx.globalAlpha = 1; // Reset opacity
+            lastPressure = 0.5; // Reset pressure
+            
+            // Release pointer capture
+            if (canvas.releasePointerCapture) {
+                try {
+                    canvas.releasePointerCapture(e.pointerId);
+                } catch (err) {
+                    // Ignore errors if pointer capture wasn't set
+                }
+            }
+            
+            saveDrawingData();
+            console.log('Drawing ended');
+        }
+
+
+
+        function clearCanvas() {
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawingData = '';
+                saveToFirebase();
+                console.log('Canvas cleared');
             }
         }
 
-        function renderDeadList() {
-            const deadList = document.getElementById('deadList');
-            if (!deadList) return;
-            
-            const deadPlayersInOrder = [];
-            
-            deathOrder.forEach(playerNumber => {
-                const player = players.find(p => p.number === playerNumber && p.status === 'dead');
-                if (player) {
-                    deadPlayersInOrder.push(player);
+        function saveDrawingData() {
+            if (canvas) {
+                try {
+                    drawingData = canvas.toDataURL('image/png');
+                    saveToFirebase();
+                    console.log('Drawing data saved');
+                } catch (error) {
+                    console.error('Error saving drawing data:', error);
                 }
-            });
-            
-            players.forEach(player => {
-                if (player.status === 'dead' && !deadPlayersInOrder.find(p => p.number === player.number)) {
-                    deadPlayersInOrder.push(player);
-                }
-            });
-            
-            if (deadPlayersInOrder.length === 0) {
-                deadList.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No casualties yet...</div>';
-            } else {
-                deadList.innerHTML = deadPlayersInOrder.map(player => 
-                    `<div class="dead-player">Player ${player.number}</div>`
-                ).join('');
             }
+        }
+
+        function loadDrawingData() {
+            if (drawingData && ctx && canvas) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    console.log('Drawing data loaded');
+                };
+                img.onerror = function() {
+                    console.error('Error loading drawing data');
+                };
+                img.src = drawingData;
+            }
+        }
+
+        function saveSequenceNotes(notes) {
+            sequenceNotes = notes;
+            console.log('Sequence notes saved:', notes);
+            saveToFirebase();
+        }
+
+        function renderSequenceGrid() {
+            const sequenceGrid = document.getElementById('sequenceGrid');
+            if (!sequenceGrid) return;
+            
+            console.log('Rendering speech sequence...');
+            console.log('Selected characters:', selectedCharacters);
+            console.log('Current sequence:', speechSequence);
+            
+            // Get all selected characters except "无"
+            const availableCharacters = Array.from(selectedCharacters).filter(char => char !== '无');
+            
+            // Initialize sequence if empty, but only with characters that have skills or are important
+            if (speechSequence.length === 0 && availableCharacters.length > 0) {
+                speechSequence = [...availableCharacters];
+            }
+            
+            // Remove characters from sequence that are no longer selected
+            speechSequence = speechSequence.filter(char => selectedCharacters.has(char));
+            
+            // Add newly selected characters to the end of sequence
+            availableCharacters.forEach(char => {
+                if (!speechSequence.includes(char)) {
+                    speechSequence.push(char);
+                }
+            });
+            
+            if (speechSequence.length === 0) {
+                sequenceGrid.innerHTML = '<div class="sequence-empty">Select characters above to create speech sequence</div>';
+                return;
+            }
+            
+            // Render sequence items
+            sequenceGrid.innerHTML = '';
+            
+            speechSequence.forEach((character, index) => {
+                const characterData_item = characterData[character];
+                const bgColor = getSequenceItemColor(characterData_item?.color);
+                
+                const sequenceItem = document.createElement('div');
+                sequenceItem.className = 'sequence-item';
+                sequenceItem.draggable = true;
+                sequenceItem.dataset.character = character;
+                sequenceItem.dataset.index = index;
+                
+                sequenceItem.style.background = bgColor.background;
+                sequenceItem.style.borderColor = bgColor.border;
+                
+                sequenceItem.innerHTML = `
+                    <div class="sequence-number">${index + 1}</div>
+                    <div class="sequence-character">${character}</div>
+                `;
+                
+                // Add drag event listeners
+                addDragEventListeners(sequenceItem);
+                
+                sequenceGrid.appendChild(sequenceItem);
+            });
+            
+            console.log('Sequence rendered with', speechSequence.length, 'characters');
+        }
+
+        function getSequenceItemColor(characterColor) {
+            if (!characterColor) return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
+            
+            if (characterColor.includes('killer') || characterColor === 'vampire') {
+                return { background: 'rgba(231, 76, 60, 0.3)', border: 'rgba(231, 76, 60, 0.6)' };
+            } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
+                return { background: 'rgba(255, 215, 0, 0.3)', border: 'rgba(255, 215, 0, 0.6)' };
+            } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
+                return { background: 'rgba(33, 150, 243, 0.3)', border: 'rgba(33, 150, 243, 0.6)' };
+            }
+            return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
+        }
+
+        function addDragEventListeners(element) {
+            // Mouse events
+            element.addEventListener('dragstart', handleDragStart);
+            element.addEventListener('dragover', handleDragOver);
+            element.addEventListener('drop', handleDrop);
+            element.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events for mobile/iPad (sequence drag and drop - different from canvas)
+            element.addEventListener('touchstart', handleSequenceTouchStart);
+            element.addEventListener('touchmove', handleSequenceTouchMove);
+            element.addEventListener('touchend', handleSequenceTouchEnd);
+        }
+
+        let draggedElement = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const target = e.target.closest('.sequence-item');
+            if (target && target !== draggedElement) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            const target = e.target.closest('.sequence-item');
+            if (target && draggedElement && target !== draggedElement) {
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const targetIndex = parseInt(target.dataset.index);
+                
+                // Reorder the sequence array
+                const draggedCharacter = speechSequence[draggedIndex];
+                speechSequence.splice(draggedIndex, 1);
+                speechSequence.splice(targetIndex, 0, draggedCharacter);
+                
+                renderSequenceGrid();
+                saveToFirebase();
+            }
+            
+            // Clean up
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        // Touch event handlers for mobile/iPad (for drag and drop, not drawing)
+        function handleSequenceTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            draggedElement = e.target.closest('.sequence-item');
+            if (draggedElement) {
+                draggedElement.classList.add('dragging');
+            }
+        }
+
+        function handleSequenceTouchMove(e) {
+            e.preventDefault();
+            if (!draggedElement) return;
+            
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const target = elementBelow?.closest('.sequence-item');
+            
+            // Clear previous highlights
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            
+            if (target && target !== draggedElement) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleSequenceTouchEnd(e) {
+            if (!draggedElement) return;
+            
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const target = elementBelow?.closest('.sequence-item');
+            
+            if (target && target !== draggedElement) {
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const targetIndex = parseInt(target.dataset.index);
+                
+                // Reorder the sequence array
+                const draggedCharacter = speechSequence[draggedIndex];
+                speechSequence.splice(draggedIndex, 1);
+                speechSequence.splice(targetIndex, 0, draggedCharacter);
+                
+                renderSequenceGrid();
+                saveToFirebase();
+            }
+            
+            // Clean up
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('drag-over', 'dragging');
+            });
+            
+            draggedElement = null;
         }
 
         function checkWinConditions() {
@@ -1428,7 +1805,12 @@
                 }).length
             };
             
+            // Good guys win if all red characters are dead
             const goodGuysWin = aliveByColor.red === 0 && (aliveByColor.yellow > 0 || aliveByColor.blue > 0);
+            
+            // Killers win if:
+            // 1. All yellow are dead OR all blue are dead (and there are red players alive)
+            // 2. OR if there are exactly 2 reds, 1 yellow, and 1 blue left
             const killersWin = aliveByColor.red > 0 && (
                 aliveByColor.yellow === 0 || 
                 aliveByColor.blue === 0 ||
@@ -1444,6 +1826,7 @@
             
             const { goodGuysWin, killersWin, aliveByColor } = checkWinConditions();
             
+            // Check if the specific 2-1-1 condition is met
             const specialKillerWin = aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1;
             
             let killerWinReason;
@@ -1480,7 +1863,378 @@
             `;
         }
 
-        // Timer functions
+        function addPlayer() {
+            if (players.length < 15) {
+                players.push({
+                    number: players.length + 1,
+                    role: '无',
+                    status: 'alive'
+                });
+                renderAdminView();
+                renderPlayerView();
+                saveToFirebase();
+            }
+        }
+
+        function removePlayer(playerNumber) {
+            if (players.length > 10 && playerNumber > 10) {
+                players = players.filter(player => player.number !== playerNumber);
+                players.forEach((player, index) => {
+                    player.number = index + 1;
+                });
+                renderAdminView();
+                renderPlayerView();
+                saveToFirebase();
+            }
+        }
+
+        function renderPlayerView() {
+            const grid = document.getElementById('playerGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `player-card ${player.status === 'alive' ? 'player-alive' : 'player-dead'}`;
+                card.innerHTML = `
+                    <div class="player-number">${player.number}</div>
+                    <div class="player-status ${player.status === 'alive' ? 'status-alive' : 'status-dead'}">
+                        ${player.status.toUpperCase()}
+                    </div>
+                `;
+                
+                // Only allow status toggle in player view if you're not in GM mode
+                if (currentView === 'player') {
+                    card.onclick = function() {
+                        // Players can't toggle status in player view
+                        // This is just for display
+                    };
+                }
+                
+                grid.appendChild(card);
+            });
+            
+            renderDeadList();
+        }
+
+        function renderAdminView() {
+            console.log('=== RENDERING ADMIN VIEW ===');
+            const grid = document.getElementById('adminGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `player-card ${getRoleClass(player.role)}`;
+                
+                const currentRole = player.role;
+                const emoji = characterData[currentRole]?.emoji || '';
+                const availableRoles = getAvailableRoles(index);
+                
+                // Create character selection icons
+                const characterIcons = availableRoles.map(role => {
+                    const isSelected = role === currentRole;
+                    const roleText = role.length >= 2 ? role.substring(0, 2) : role;
+                    const characterColor = characterData[role]?.color || 'none';
+                    
+                    // Get colors based on character type
+                    let bgColor, borderColor;
+                    if (characterColor.includes('killer') || characterColor === 'vampire') {
+                        // Red characters
+                        bgColor = isSelected ? 'rgba(231, 76, 60, 0.8)' : 'rgba(231, 76, 60, 0.3)';
+                        borderColor = isSelected ? '#e74c3c' : 'rgba(231, 76, 60, 0.6)';
+                    } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
+                        // Yellow characters
+                        bgColor = isSelected ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.3)';
+                        borderColor = isSelected ? '#ffd700' : 'rgba(255, 215, 0, 0.6)';
+                    } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
+                        // Blue characters
+                        bgColor = isSelected ? 'rgba(33, 150, 243, 0.8)' : 'rgba(33, 150, 243, 0.3)';
+                        borderColor = isSelected ? '#2196f3' : 'rgba(33, 150, 243, 0.6)';
+                    } else {
+                        // None/default
+                        bgColor = isSelected ? 'rgba(107, 114, 128, 0.8)' : 'rgba(107, 114, 128, 0.3)';
+                        borderColor = isSelected ? '#6b7280' : 'rgba(107, 114, 128, 0.6)';
+                    }
+                    
+                    return `
+                        <div class="char-icon ${isSelected ? 'selected' : ''}" 
+                             onclick="selectCharacterForPlayer(${index}, '${role}')"
+                             title="${role}"
+                             style="
+                                display: inline-block;
+                                width: 36px;
+                                height: 32px;
+                                margin: 2px;
+                                background: ${bgColor};
+                                border: 2px solid ${borderColor};
+                                border-radius: 6px;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 12px;
+                                font-weight: bold;
+                                color: white;
+                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+                                user-select: none;
+                                -webkit-user-select: none;
+                                -webkit-tap-highlight-color: transparent;
+                             "
+                             onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)'"
+                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
+                        >${roleText}</div>
+                    `;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div class="player-number" style="margin: 0;">${player.number}</div>
+                        <div class="player-status-square ${player.status === 'alive' ? 'status-alive' : 'status-dead'}" 
+                             onclick="toggleStatus(${index})"
+                             style="
+                                width: 50px;
+                                height: 50px;
+                                border-radius: 12px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                cursor: pointer;
+                                font-size: 12px;
+                                font-weight: bold;
+                                transition: all 0.3s ease;
+                                ${player.status === 'alive' ? 
+                                    'background: linear-gradient(45deg, #27ae60, #2ecc71);' : 
+                                    'background: linear-gradient(45deg, #e74c3c, #c0392b);'
+                                }
+                             "
+                             onmouseover="this.style.transform='scale(1.1)'"
+                             onmouseout="this.style.transform='scale(1)'"
+                        >
+                            ${player.status === 'alive' ? '✓' : '✗'}
+                        </div>
+                    </div>
+                    <div class="current-role" style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        padding: 8px 12px;
+                        color: white;
+                        font-size: 1em;
+                        margin-bottom: 10px;
+                        text-align: center;
+                        min-height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        font-weight: bold;
+                    ">
+                        <span style="font-size: 1.2em;">${emoji}</span>
+                        <span>${currentRole}</span>
+                    </div>
+                    <div class="character-selection" style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        gap: 2px;
+                        margin-bottom: 10px;
+                        padding: 5px;
+                        background: rgba(0, 0, 0, 0.2);
+                        border-radius: 6px;
+                        min-height: 40px;
+                        align-items: center;
+                    ">
+                        ${characterIcons}
+                    </div>
+                `;
+                
+                if (player.number > 10) {
+                    const removeIcon = document.createElement('div');
+                    removeIcon.className = 'remove-icon';
+                    removeIcon.innerHTML = '×';
+                    removeIcon.onclick = function(e) {
+                        e.stopPropagation();
+                        removePlayer(player.number);
+                    };
+                    card.appendChild(removeIcon);
+                }
+                
+                grid.appendChild(card);
+            });
+            
+            if (players.length < 15) {
+                for (let i = players.length + 1; i <= 15; i++) {
+                    const addCard = document.createElement('div');
+                    addCard.className = 'add-player-card';
+                    addCard.innerHTML = '<div class="add-icon">+</div>';
+                    addCard.onclick = function() { addPlayer(); };
+                    grid.appendChild(addCard);
+                    if (players.length >= 14) break;
+                }
+            }
+            
+            console.log('About to render sequence grid...');
+            renderSequenceGrid();
+            renderWinConditions();
+            console.log('=== ADMIN VIEW RENDERED ===');
+        }
+
+        function renderDeadList() {
+            const deadList = document.getElementById('deadList');
+            if (!deadList) return;
+            
+            // Get dead players in the order they died
+            const deadPlayersInOrder = [];
+            
+            // First, add players in death order
+            deathOrder.forEach(playerNumber => {
+                const player = players.find(p => p.number === playerNumber && p.status === 'dead');
+                if (player) {
+                    deadPlayersInOrder.push(player);
+                }
+            });
+            
+            // Then add any dead players not in death order (shouldn't happen, but just in case)
+            players.forEach(player => {
+                if (player.status === 'dead' && !deadPlayersInOrder.find(p => p.number === player.number)) {
+                    deadPlayersInOrder.push(player);
+                }
+            });
+            
+            if (deadPlayersInOrder.length === 0) {
+                deadList.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No casualties yet...</div>';
+            } else {
+                deadList.innerHTML = deadPlayersInOrder.map(player => 
+                    `<div class="dead-player">Player ${player.number}</div>`
+                ).join('');
+            }
+        }
+
+        function toggleStatus(index) {
+            console.log('Toggling status for player', index, 'from', players[index].status);
+            const player = players[index];
+            const wasAlive = player.status === 'alive';
+            
+            player.status = wasAlive ? 'dead' : 'alive';
+            
+            // Track death order
+            if (wasAlive) {
+                // Player just died - add to death order if not already there
+                if (!deathOrder.includes(player.number)) {
+                    deathOrder.push(player.number);
+                }
+            } else {
+                // Player came back to life - remove from death order
+                deathOrder = deathOrder.filter(num => num !== player.number);
+            }
+            
+            console.log('New status:', player.status);
+            console.log('Death order:', deathOrder);
+            
+            // Immediately re-render views
+            renderAdminView();
+            renderPlayerView();
+            
+            // Save to Firebase
+            saveToFirebase();
+        }
+
+        function selectCharacterForPlayer(playerIndex, characterRole) {
+            console.log(`Assigning ${characterRole} to player ${playerIndex + 1}`);
+            players[playerIndex].role = characterRole;
+            renderAdminView();
+            renderSequenceGrid();
+            saveToFirebase();
+        }
+
+        function resetAll() {
+            players.forEach(player => {
+                player.role = '无';
+                player.status = 'alive';
+            });
+            
+            players = players.slice(0, 10);
+            players.forEach((player, index) => {
+                player.number = index + 1;
+            });
+            
+            speechSequence = []; // Clear speech sequence
+            drawingData = ''; // Clear drawing
+            deathOrder = [];
+            
+            // Clear the canvas
+            clearCanvas();
+            
+            renderAdminView();
+            renderPlayerView();
+            renderSequenceGrid();
+            saveToFirebase();
+        }
+
+        // ===========================================
+        // TIMER FUNCTIONS
+        // ===========================================
+
+        // Audio context for tick sound
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                }
+            }
+        }
+
+        function playTickSound() {
+            try {
+                // Simple beep using Web Audio API
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // For iOS/Safari - resume context if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().catch(console.log);
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Beep sound settings
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                // Volume and duration
+                gainNode.gain.value = 0.05; // Quiet beep
+                
+                // Play for 100ms
+                const now = audioContext.currentTime;
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                
+                console.log('Tick sound played');
+                
+            } catch (error) {
+                // Fallback: try to play a system sound if possible
+                try {
+                    // This may not work on all browsers but worth trying
+                    navigator.vibrate && navigator.vibrate(50);
+                } catch (e) {
+                    console.log('Audio not available');
+                }
+            }
+        }
+
         function updateTimerDisplay() {
             const timerDisplay = document.getElementById('timerDisplay');
             const timerDisplayGM = document.getElementById('timerDisplayGM');
@@ -1496,15 +2250,20 @@
         function startTimer() {
             if (!isTimerRunning) {
                 isTimerRunning = true;
+                const startBtn = document.getElementById('startBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
                 const startBtnGM = document.getElementById('startBtnGM');
                 const pauseBtnGM = document.getElementById('pauseBtnGM');
                 
+                if (startBtn) startBtn.disabled = true;
+                if (pauseBtn) pauseBtn.disabled = false;
                 if (startBtnGM) startBtnGM.disabled = true;
                 if (pauseBtnGM) pauseBtnGM.disabled = false;
                 
                 timerInterval = setInterval(function() {
                     timeLeft--;
                     updateTimerDisplay();
+                    saveToFirebase(); // Save timer state
                     
                     if (timeLeft <= 0) {
                         pauseTimer();
@@ -1520,11 +2279,17 @@
                 isTimerRunning = false;
                 clearInterval(timerInterval);
                 
+                const startBtn = document.getElementById('startBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
                 const startBtnGM = document.getElementById('startBtnGM');
                 const pauseBtnGM = document.getElementById('pauseBtnGM');
                 
+                if (startBtn) startBtn.disabled = false;
+                if (pauseBtn) pauseBtn.disabled = true;
                 if (startBtnGM) startBtnGM.disabled = false;
                 if (pauseBtnGM) pauseBtnGM.disabled = true;
+                
+                saveToFirebase(); // Save timer state
             }
         }
 
@@ -1533,20 +2298,47 @@
             timeLeft = 60;
             updateTimerDisplay();
             
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
             const startBtnGM = document.getElementById('startBtnGM');
             const pauseBtnGM = document.getElementById('pauseBtnGM');
             
+            if (startBtn) startBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
             if (startBtnGM) startBtnGM.disabled = false;
             if (pauseBtnGM) pauseBtnGM.disabled = true;
+            
+            saveToFirebase(); // Save timer state
         }
 
-        // Initialize
+        // Initialize the page
         window.addEventListener('load', function() {
+            console.log('Page loaded, initializing...');
+            
+            // Start with player view
             showPlayerView();
+            
+            // Initialize timer display
             updateTimerDisplay();
+            const pauseBtn = document.getElementById('pauseBtn');
             const pauseBtnGM = document.getElementById('pauseBtnGM');
+            if (pauseBtn) pauseBtn.disabled = true;
             if (pauseBtnGM) pauseBtnGM.disabled = true;
+            
+            // Wait a moment for Firebase to fully initialize, then set up listeners
+            setTimeout(function() {
+                loadFromFirebase();
+            }, 1000);
+            
+            console.log('Game interface loaded successfully with enhanced Apple Pencil support');
         });
+
+        // Auto-save every 30 seconds as backup
+        setInterval(function() {
+            if (isFirebaseConnected) {
+                saveToFirebase();
+            }
+        }, 30000);
 
     </script>
 </body>
