@@ -859,7 +859,7 @@
         /* Enhanced Drawing Canvas Styles for iPad Pro */
         #drawingCanvas {
             width: 100%;
-            aspect-ratio: 2/1;
+            aspect-ratio: 1.54/1;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
@@ -874,6 +874,10 @@
             user-select: none;
             /* Disable default Safari behaviors */
             -webkit-tap-highlight-color: transparent;
+        }
+        
+        #drawingCanvas.eraser-mode {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="white" stroke-width="2"/></svg>') 12 12, auto;
         }
         
         @media (max-width: 768px) {
@@ -895,7 +899,7 @@
 <body>
     <!-- Firebase Status Indicator -->
     <div id="firebaseStatus" class="firebase-status firebase-disconnected">
-        🔥 Connecting...
+        🔥 Local Mode
     </div>
 
     <div class="header">
@@ -975,11 +979,28 @@
                             border-radius: 4px; 
                             cursor: pointer;
                         ">
-                        <label style="color: white; font-size: 14px;">Size:</label>
+                        <label style="color: white; font-size: 14px;">Pen Size:</label>
                         <input type="range" id="penSize" min="1" max="10" value="3" style="
                             width: 80px;
                         ">
-                        <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 20px;">3px</span>
+                        <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 25px;">3px</span>
+                        <button id="eraserBtn" onclick="toggleEraser()" style="
+                            background: linear-gradient(45deg, #f39c12, #e67e22);
+                            border: none;
+                            border-radius: 4px;
+                            color: white;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: bold;
+                            transition: all 0.3s ease;
+                        ">✏️ Pen</button>
+                        <label id="eraserSizeLabel" style="color: white; font-size: 14px; display: none;">Eraser Size:</label>
+                        <input type="range" id="eraserSize" min="5" max="50" value="20" style="
+                            width: 80px;
+                            display: none;
+                        ">
+                        <span id="eraserSizeDisplay" style="color: white; font-size: 12px; min-width: 25px; display: none;">20px</span>
                         <button onclick="clearCanvas()" style="
                             background: linear-gradient(45deg, #e74c3c, #c0392b);
                             border: none;
@@ -994,7 +1015,7 @@
                     <canvas 
                         id="drawingCanvas" 
                         width="800" 
-                        height="800"
+                        height="520"
                     ></canvas>
                 </div>
             </div>
@@ -1026,55 +1047,7 @@
         </div>
     </div>
 
-    <!-- Firebase CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
-
     <script>
-        // ===========================================
-        // FIREBASE CONFIGURATION
-        // ===========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDv5cOm9FY_iCl1h4l5pnEYdYRBjwlTMGw",
-            authDomain: "the-killer-game-f86f6.firebaseapp.com",
-            databaseURL: "https://the-killer-game-f86f6-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "the-killer-game-f86f6",
-            storageBucket: "the-killer-game-f86f6.firebasestorage.app",
-            messagingSenderId: "70683989632",
-            appId: "1:70683989632:web:a12991a0c3c8cf35db3865"
-        };
-
-        // Initialize Firebase
-        let database;
-        let isFirebaseConnected = false;
-
-        try {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            
-            // Test connection
-            database.ref('.info/connected').on('value', function(snapshot) {
-                isFirebaseConnected = snapshot.val();
-                updateFirebaseStatus();
-            });
-            
-            console.log('Firebase initialized successfully');
-        } catch (error) {
-            console.error('Firebase initialization failed:', error);
-            updateFirebaseStatus();
-        }
-
-        function updateFirebaseStatus() {
-            const statusElement = document.getElementById('firebaseStatus');
-            if (isFirebaseConnected) {
-                statusElement.textContent = '🔥 Connected';
-                statusElement.className = 'firebase-status firebase-connected';
-            } else {
-                statusElement.textContent = '🔥 Disconnected';
-                statusElement.className = 'firebase-status firebase-disconnected';
-            }
-        }
-
         // ===========================================
         // GAME DATA AND LOGIC
         // ===========================================
@@ -1106,11 +1079,13 @@
             '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
             '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
             '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
+            '其他神': { skill: 'Other', color: 'detective', emoji: '🟡' },
             '村民': { skill: '', color: 'civilian', emoji: '🔵' },
             // Blue Characters
             '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
             '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
-            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' }
+            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' },
+            '其他民': { skill: '', color: 'civilian', emoji: '🔵' }
         };
 
         const roles = Object.keys(characterData);
@@ -1133,96 +1108,6 @@
                 number: i,
                 role: '无',
                 status: 'alive'
-            });
-        }
-
-        // ===========================================
-        // FIREBASE FUNCTIONS
-        // ===========================================
-
-        function saveToFirebase() {
-            if (!isFirebaseConnected || !database) {
-                console.log('Firebase not connected, saving locally only');
-                return;
-            }
-
-            try {
-                const gameData = {
-                    players: players,
-                    speechSequence: speechSequence,
-                    drawingData: drawingData,
-                    selectedCharacters: Array.from(selectedCharacters),
-                    deathOrder: deathOrder,
-                    timerState: {
-                        timeLeft: timeLeft,
-                        isRunning: isTimerRunning
-                    },
-                    lastUpdated: Date.now()
-                };
-
-                console.log('Saving to Firebase:', gameData);
-                database.ref('gameState').set(gameData);
-                console.log('Game state saved to Firebase successfully');
-            } catch (error) {
-                console.error('Error saving to Firebase:', error);
-            }
-        }
-
-        function loadFromFirebase() {
-            if (!isFirebaseConnected || !database) {
-                console.log('Firebase not connected, using local data');
-                return;
-            }
-
-            database.ref('gameState').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    console.log('Loading game state from Firebase', data);
-                    
-                    // Update players
-                    if (data.players) {
-                        players = data.players;
-                        console.log('Updated players:', players);
-                    }
-                    
-                    // Update speech sequence
-                    if (data.speechSequence) {
-                        speechSequence = data.speechSequence;
-                    }
-                    
-                    // Update drawing data
-                    if (data.drawingData) {
-                        drawingData = data.drawingData;
-                        // Load drawing after a short delay to ensure canvas is ready
-                        setTimeout(() => {
-                            loadDrawingData();
-                        }, 100);
-                    }
-                    
-                    // Update selected characters
-                    if (data.selectedCharacters) {
-                        selectedCharacters = new Set(data.selectedCharacters);
-                    }
-                    
-                    // Update death order
-                    if (data.deathOrder) {
-                        deathOrder = data.deathOrder;
-                    }
-                    
-                    // Update timer (only if not currently running)
-                    if (data.timerState && !isTimerRunning) {
-                        timeLeft = data.timerState.timeLeft || 60;
-                        updateTimerDisplay();
-                    }
-                    
-                    // Always re-render both views to ensure sync
-                    renderPlayerView();
-                    if (currentView === 'gm') {
-                        renderCharacterSelection();
-                        renderAdminView();
-                        renderSequenceGrid();
-                    }
-                }
             });
         }
 
@@ -1254,9 +1139,6 @@
             // Initialize canvas after DOM is ready
             setTimeout(() => {
                 initializeCanvas();
-                if (drawingData) {
-                    loadDrawingData();
-                }
             }, 100);
         }
 
@@ -1297,7 +1179,6 @@
                     renderCharacterSelection();
                     renderAdminView();
                     renderSequenceGrid(); // Update sequence when characters are selected/deselected
-                    saveToFirebase();
                 };
                 
                 characterGrid.appendChild(item);
@@ -1313,7 +1194,6 @@
             renderCharacterSelection();
             renderAdminView();
             renderSequenceGrid();
-            saveToFirebase();
         }
         
         function deselectAllCharacters() {
@@ -1326,7 +1206,6 @@
             renderCharacterSelection();
             renderAdminView();
             renderSequenceGrid();
-            saveToFirebase();
         }
         
         function selectEssentialOnly() {
@@ -1342,7 +1221,6 @@
             renderCharacterSelection();
             renderAdminView();
             renderSequenceGrid();
-            saveToFirebase();
         }
 
         function getAvailableRoles(currentPlayerIndex) {
@@ -1366,6 +1244,33 @@
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let isEraserMode = false;
+
+        function toggleEraser() {
+            isEraserMode = !isEraserMode;
+            const eraserBtn = document.getElementById('eraserBtn');
+            const eraserSizeLabel = document.getElementById('eraserSizeLabel');
+            const eraserSize = document.getElementById('eraserSize');
+            const eraserSizeDisplay = document.getElementById('eraserSizeDisplay');
+            const canvas = document.getElementById('drawingCanvas');
+            
+            if (isEraserMode) {
+                eraserBtn.innerHTML = '🧽 Eraser';
+                eraserBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
+                eraserSizeLabel.style.display = 'inline';
+                eraserSize.style.display = 'inline';
+                eraserSizeDisplay.style.display = 'inline';
+                eraserSizeDisplay.textContent = eraserSize.value + 'px';
+                canvas.classList.add('eraser-mode');
+            } else {
+                eraserBtn.innerHTML = '✏️ Pen';
+                eraserBtn.style.background = 'linear-gradient(45deg, #f39c12, #e67e22)';
+                eraserSizeLabel.style.display = 'none';
+                eraserSize.style.display = 'none';
+                eraserSizeDisplay.style.display = 'none';
+                canvas.classList.remove('eraser-mode');
+            }
+        }
 
         function initializeCanvas() {
             canvas = document.getElementById('drawingCanvas');
@@ -1384,13 +1289,21 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            // Set up size display
+            // Set up size displays
             const penSize = document.getElementById('penSize');
             const sizeDisplay = document.getElementById('sizeDisplay');
+            const eraserSize = document.getElementById('eraserSize');
+            const eraserSizeDisplay = document.getElementById('eraserSizeDisplay');
             
             if (penSize && sizeDisplay) {
                 penSize.addEventListener('input', function() {
                     sizeDisplay.textContent = this.value + 'px';
+                });
+            }
+            
+            if (eraserSize && eraserSizeDisplay) {
+                eraserSize.addEventListener('input', function() {
+                    eraserSizeDisplay.textContent = this.value + 'px';
                 });
             }
             
@@ -1427,7 +1340,7 @@
                 canvas.dispatchEvent(mouseEvent);
             });
             
-            console.log('Simple drawing canvas initialized');
+            console.log('Drawing canvas initialized with eraser support');
         }
 
         function getMousePos(e) {
@@ -1453,16 +1366,28 @@
             if (!isDrawing) return;
             
             const pos = getMousePos(e);
-            const penColor = document.getElementById('penColor').value;
-            const penSize = document.getElementById('penSize').value;
             
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = penSize;
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
+            if (isEraserMode) {
+                // Eraser mode
+                const eraserSize = document.getElementById('eraserSize').value;
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = eraserSize;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            } else {
+                // Pen mode
+                const penColor = document.getElementById('penColor').value;
+                const penSize = document.getElementById('penSize').value;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = penColor;
+                ctx.lineWidth = penSize;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            }
             
             lastX = pos.x;
             lastY = pos.y;
@@ -1471,220 +1396,18 @@
         function stopDrawing() {
             if (isDrawing) {
                 isDrawing = false;
-                saveDrawingData();
                 console.log('Drawing stopped');
             }
         }
 
-        function getCanvasCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            let clientX, clientY;
-            
-            // Handle different event types
-            if (e.touches && e.touches.length > 0) {
-                // Touch event
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else if (e.changedTouches && e.changedTouches.length > 0) {
-                // Touch end event
-                clientX = e.changedTouches[0].clientX;
-                clientY = e.changedTouches[0].clientY;
-            } else {
-                // Mouse or pointer event
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            
-            return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
-        }
-
-        function handlePointerStart(e) {
-            // If we're already drawing with another pointer, ignore this one
-            if (isDrawing && drawingPointerId !== null && drawingPointerId !== e.pointerId) {
-                e.preventDefault();
-                return;
-            }
-            
-            // Only handle primary pointer OR Apple Pencil specifically
-            if (e.isPrimary === false && e.pointerType !== 'pen') {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            isDrawing = true;
-            drawingPointerId = e.pointerId; // Lock to this pointer
-            
-            const pos = getCanvasCoordinates(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            
-            // Capture pressure for Apple Pencil
-            lastPressure = e.pressure || 0.5;
-            
-            // Set pointer capture for better tracking
-            if (canvas.setPointerCapture) {
-                try {
-                    canvas.setPointerCapture(e.pointerId);
-                } catch (err) {
-                    // Ignore capture errors
-                }
-            }
-            
-            console.log('Drawing started - Pointer:', e.pointerType, 'ID:', e.pointerId, 'Pressure:', e.pressure);
-        }
-
-        function handlePointerMove(e) {
-            // Only handle if we're drawing AND this is the correct pointer
-            if (!isDrawing || drawingPointerId !== e.pointerId) {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const pos = getCanvasCoordinates(e);
-            const penColor = document.getElementById('penColor').value;
-            const basePenSize = parseFloat(document.getElementById('penSize').value);
-            
-            // Enhanced pressure handling for Apple Pencil
-            let pressure = e.pressure || 0.5;
-            if (pressure === 0 || pressure === 0.5) {
-                // If no pressure data, use touch force as fallback
-                if (e.force !== undefined) {
-                    pressure = Math.max(0.1, Math.min(1.0, e.force));
-                } else {
-                    pressure = 0.5;
-                }
-            }
-            
-            // Smooth pressure changes to avoid jarring transitions
-            pressure = lastPressure * 0.7 + pressure * 0.3;
-            lastPressure = pressure;
-            
-            // Apply pressure to line width (minimum 20% of base size)
-            const lineWidth = basePenSize * Math.max(0.2, pressure);
-            
-            // Apply pressure to opacity (minimum 30% opacity)
-            const opacity = Math.max(0.3, pressure);
-            
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = lineWidth;
-            ctx.globalAlpha = opacity;
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function handlePointerEnd(e) {
-            if (!isDrawing) return;
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            isDrawing = false;
-            ctx.globalAlpha = 1; // Reset opacity
-            lastPressure = 0.5; // Reset pressure
-            
-            // Release pointer capture
-            if (canvas.releasePointerCapture) {
-                try {
-                    canvas.releasePointerCapture(e.pointerId);
-                } catch (err) {
-                    // Ignore errors if pointer capture wasn't set
-                }
-            }
-            
-            saveDrawingData();
-            console.log('Drawing ended');
-        }
-
-
-
         function clearCanvas() {
             if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                allPaths = []; // Clear all stored paths
-                currentPath = [];
+                ctx.globalCompositeOperation = 'source-over'; // Reset composite operation
                 drawingData = '';
-                saveToFirebase();
-                console.log('Canvas and all paths cleared');
+                console.log('Canvas cleared');
             }
         }
-
-        function saveDrawingData() {
-            if (canvas && allPaths.length > 0) {
-                try {
-                    // Save both the image and path data for redundancy
-                    const imageData = canvas.toDataURL('image/png');
-                    const pathData = JSON.stringify(allPaths);
-                    
-                    drawingData = JSON.stringify({
-                        image: imageData,
-                        paths: pathData,
-                        version: 2 // Mark this as the new format
-                    });
-                    
-                    saveToFirebase();
-                    console.log('Drawing data saved with', allPaths.length, 'paths');
-                } catch (error) {
-                    console.error('Error saving drawing data:', error);
-                }
-            }
-        }
-
-        function loadDrawingData() {
-            if (!drawingData || !ctx || !canvas) return;
-            
-            try {
-                // Try to parse as new format first
-                const data = JSON.parse(drawingData);
-                
-                if (data.version === 2 && data.paths) {
-                    // New path-based format
-                    allPaths = JSON.parse(data.paths);
-                    redrawCanvas();
-                    console.log('Loaded', allPaths.length, 'paths from new format');
-                } else if (data.image) {
-                    // Fallback to image format
-                    const img = new Image();
-                    img.onload = function() {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0);
-                        console.log('Loaded drawing from image format');
-                    };
-                    img.src = data.image;
-                }
-            } catch (e) {
-                // Fallback: treat as direct image data (old format)
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-                    console.log('Loaded drawing from legacy format');
-                };
-                img.onerror = function() {
-                    console.error('Error loading drawing data');
-                };
-                img.src = drawingData;
-            }
-        }
-
-
 
         function renderSequenceGrid() {
             const sequenceGrid = document.getElementById('sequenceGrid');
@@ -1808,7 +1531,6 @@
                 speechSequence.splice(targetIndex, 0, draggedCharacter);
                 
                 renderSequenceGrid();
-                saveToFirebase();
             }
             
             // Clean up
@@ -1868,7 +1590,6 @@
                 speechSequence.splice(targetIndex, 0, draggedCharacter);
                 
                 renderSequenceGrid();
-                saveToFirebase();
             }
             
             // Clean up
@@ -1963,7 +1684,6 @@
                 });
                 renderAdminView();
                 renderPlayerView();
-                saveToFirebase();
             }
         }
 
@@ -1975,7 +1695,6 @@
                 });
                 renderAdminView();
                 renderPlayerView();
-                saveToFirebase();
             }
         }
 
@@ -1994,14 +1713,6 @@
                         ${player.status.toUpperCase()}
                     </div>
                 `;
-                
-                // Only allow status toggle in player view if you're not in GM mode
-                if (currentView === 'player') {
-                    card.onclick = function() {
-                        // Players can't toggle status in player view
-                        // This is just for display
-                    };
-                }
                 
                 grid.appendChild(card);
             });
@@ -2230,9 +1941,6 @@
             // Immediately re-render views
             renderAdminView();
             renderPlayerView();
-            
-            // Save to Firebase
-            saveToFirebase();
         }
 
         function selectCharacterForPlayer(playerIndex, characterRole) {
@@ -2240,7 +1948,6 @@
             players[playerIndex].role = characterRole;
             renderAdminView();
             renderSequenceGrid();
-            saveToFirebase();
         }
 
         function resetAll() {
@@ -2264,68 +1971,11 @@
             renderAdminView();
             renderPlayerView();
             renderSequenceGrid();
-            saveToFirebase();
         }
 
         // ===========================================
         // TIMER FUNCTIONS
         // ===========================================
-
-        // Audio context for tick sound
-        let audioContext = null;
-
-        function initAudioContext() {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    console.log('Web Audio API not supported');
-                }
-            }
-        }
-
-        function playTickSound() {
-            try {
-                // Simple beep using Web Audio API
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                
-                // For iOS/Safari - resume context if suspended
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().catch(console.log);
-                }
-                
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                // Beep sound settings
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                // Volume and duration
-                gainNode.gain.value = 0.05; // Quiet beep
-                
-                // Play for 100ms
-                const now = audioContext.currentTime;
-                oscillator.start(now);
-                oscillator.stop(now + 0.1);
-                
-                console.log('Tick sound played');
-                
-            } catch (error) {
-                // Fallback: try to play a system sound if possible
-                try {
-                    // This may not work on all browsers but worth trying
-                    navigator.vibrate && navigator.vibrate(50);
-                } catch (e) {
-                    console.log('Audio not available');
-                }
-            }
-        }
 
         function updateTimerDisplay() {
             const timerDisplay = document.getElementById('timerDisplay');
@@ -2354,14 +2004,7 @@
                 
                 timerInterval = setInterval(function() {
                     timeLeft--;
-                    
-                    // Add tick sound for last 10 seconds
-                    if (timeLeft <= 10 && timeLeft > 0) {
-                        playTickSound();
-                    }
-                    
                     updateTimerDisplay();
-                    saveToFirebase(); // Save timer state
                     
                     if (timeLeft <= 0) {
                         pauseTimer();
@@ -2386,8 +2029,6 @@
                 if (pauseBtn) pauseBtn.disabled = true;
                 if (startBtnGM) startBtnGM.disabled = false;
                 if (pauseBtnGM) pauseBtnGM.disabled = true;
-                
-                saveToFirebase(); // Save timer state
             }
         }
 
@@ -2405,8 +2046,6 @@
             if (pauseBtn) pauseBtn.disabled = true;
             if (startBtnGM) startBtnGM.disabled = false;
             if (pauseBtnGM) pauseBtnGM.disabled = true;
-            
-            saveToFirebase(); // Save timer state
         }
 
         // Initialize the page
@@ -2423,20 +2062,8 @@
             if (pauseBtn) pauseBtn.disabled = true;
             if (pauseBtnGM) pauseBtnGM.disabled = true;
             
-            // Wait a moment for Firebase to fully initialize, then set up listeners
-            setTimeout(function() {
-                loadFromFirebase();
-            }, 1000);
-            
-            console.log('Game interface loaded successfully with enhanced Apple Pencil support');
+            console.log('Game interface loaded with eraser functionality');
         });
-
-        // Auto-save every 30 seconds as backup
-        setInterval(function() {
-            if (isFirebaseConnected) {
-                saveToFirebase();
-            }
-        }, 30000);
 
     </script>
 </body>
