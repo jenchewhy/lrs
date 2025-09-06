@@ -324,22 +324,66 @@
         
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .character-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            
+            .character-item {
+                padding: 10px 6px;
+                min-height: 45px;
+            }
+            
+            .character-name {
+                font-size: 0.8em;
+            }
+            
+            .character-checkbox {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+            
+            .character-emoji {
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .character-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 4px;
+            }
+            
+            .character-item {
+                padding: 12px 8px;
+                min-height: 50px;
+            }
+            
+            .character-name {
+                font-size: 0.9em;
+            }
         }
         
         .character-item {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            min-height: 50px;
         }
         
         .character-item:hover {
@@ -542,7 +586,7 @@
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
-            min-                                height: 60px;
+            min-height: 80px;
             padding: 15px;
             background: rgba(0, 0, 0, 0.2);
             border: 2px dashed rgba(255, 255, 255, 0.3);
@@ -815,7 +859,7 @@
         /* Enhanced Drawing Canvas Styles for iPad Pro */
         #drawingCanvas {
             width: 100%;
-            height: 300px;
+            aspect-ratio: 2/1;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
@@ -912,25 +956,7 @@
                 <div class="sequence-grid" id="sequenceGrid">
                     <!-- Speech sequence will be populated dynamically -->
                 </div>
-                <textarea 
-                    id="sequenceNotes" 
-                    placeholder="Add notes about the speech sequence..."
-                    style="
-                        width: 100%;
-                        min-height: 80px;
-                        margin-top: 15px;
-                        padding: 12px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        border-radius: 8px;
-                        color: white;
-                        font-size: 14px;
-                        font-family: inherit;
-                        resize: vertical;
-                        box-sizing: border-box;
-                    "
-                    onchange="saveSequenceNotes(this.value)"
-                ></textarea>
+
                 
                 <div class="drawing-section" style="margin-top: 20px;">
                     <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
@@ -968,7 +994,7 @@
                     <canvas 
                         id="drawingCanvas" 
                         width="800" 
-                        height="400"
+                        height="800"
                     ></canvas>
                 </div>
             </div>
@@ -1124,7 +1150,6 @@
                 const gameData = {
                     players: players,
                     speechSequence: speechSequence,
-                    sequenceNotes: sequenceNotes,
                     drawingData: drawingData,
                     selectedCharacters: Array.from(selectedCharacters),
                     deathOrder: deathOrder,
@@ -1163,15 +1188,6 @@
                     // Update speech sequence
                     if (data.speechSequence) {
                         speechSequence = data.speechSequence;
-                    }
-                    
-                    // Update sequence notes
-                    if (data.sequenceNotes) {
-                        sequenceNotes = data.sequenceNotes;
-                        const notesTextarea = document.getElementById('sequenceNotes');
-                        if (notesTextarea) {
-                            notesTextarea.value = sequenceNotes;
-                        }
                     }
                     
                     // Update drawing data
@@ -1263,10 +1279,7 @@
                 const character = characterData[role];
                 item.innerHTML = `
                     <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
-                    <div class="character-info">
-                        <div class="character-name">${role}</div>
-                        <div class="character-skill">${character.skill}</div>
-                    </div>
+                    <div class="character-name">${role}</div>
                     <div class="character-emoji">${character.emoji}</div>
                 `;
                 
@@ -1345,16 +1358,14 @@
         }
 
         let speechSequence = []; // Array to store the order of characters
-        let sequenceNotes = ''; // String to store notes about the sequence
         let drawingData = ''; // String to store canvas drawing data
 
-        // Drawing canvas variables - Enhanced for Apple Pencil
+        // Drawing canvas variables - Simplified
         let canvas = null;
         let ctx = null;
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
-        let lastPressure = 0.5;
 
         function initializeCanvas() {
             canvas = document.getElementById('drawingCanvas');
@@ -1372,9 +1383,8 @@
             // Set up drawing settings
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.imageSmoothingEnabled = true;
             
-            // Set up event listeners for size display
+            // Set up size display
             const penSize = document.getElementById('penSize');
             const sizeDisplay = document.getElementById('sizeDisplay');
             
@@ -1384,52 +1394,86 @@
                 });
             }
             
-            // Remove all existing event listeners first
-            canvas.onpointerdown = null;
-            canvas.onpointermove = null;
-            canvas.onpointerup = null;
-            canvas.onpointercancel = null;
-            canvas.onpointerleave = null;
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
             
-            // Primary: Pointer Events (best for stylus support) - with proper options
-            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false, capture: true });
-            canvas.addEventListener('pointermove', handlePointerMove, { passive: false, capture: true });
-            canvas.addEventListener('pointerup', handlePointerEnd, { passive: false, capture: true });
-            canvas.addEventListener('pointercancel', handlePointerEnd, { passive: false, capture: true });
-            canvas.addEventListener('pointerleave', handlePointerEnd, { passive: false, capture: true });
-            
-            // Disable touch events completely to avoid conflicts with pointer events
+            // Touch events for mobile/iPad
             canvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
             
             canvas.addEventListener('touchmove', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
             
             canvas.addEventListener('touchend', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false, capture: true });
+                const mouseEvent = new MouseEvent('mouseup', {});
+                canvas.dispatchEvent(mouseEvent);
+            });
             
-            // Prevent context menu and selection
-            canvas.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }, { passive: false });
+            console.log('Simple drawing canvas initialized');
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
             
-            canvas.addEventListener('selectstart', function(e) {
-                e.preventDefault();
-                return false;
-            }, { passive: false });
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getMousePos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            console.log('Drawing started at', pos);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
             
-            console.log('Enhanced drawing canvas initialized for iPad Pro + Apple Pencil');
+            const pos = getMousePos(e);
+            const penColor = document.getElementById('penColor').value;
+            const penSize = document.getElementById('penSize').value;
+            
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = penSize;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveDrawingData();
+                console.log('Drawing stopped');
+            }
         }
 
         function getCanvasCoordinates(e) {
@@ -1461,13 +1505,24 @@
         }
 
         function handlePointerStart(e) {
-            // Only handle primary pointer (first touch/stylus)
-            if (e.isPrimary === false) return;
+            // If we're already drawing with another pointer, ignore this one
+            if (isDrawing && drawingPointerId !== null && drawingPointerId !== e.pointerId) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Only handle primary pointer OR Apple Pencil specifically
+            if (e.isPrimary === false && e.pointerType !== 'pen') {
+                e.preventDefault();
+                return;
+            }
             
             e.preventDefault();
             e.stopPropagation();
             
             isDrawing = true;
+            drawingPointerId = e.pointerId; // Lock to this pointer
+            
             const pos = getCanvasCoordinates(e);
             lastX = pos.x;
             lastY = pos.y;
@@ -1477,15 +1532,22 @@
             
             // Set pointer capture for better tracking
             if (canvas.setPointerCapture) {
-                canvas.setPointerCapture(e.pointerId);
+                try {
+                    canvas.setPointerCapture(e.pointerId);
+                } catch (err) {
+                    // Ignore capture errors
+                }
             }
             
-            console.log('Drawing started - Pointer:', e.pointerType, 'Pressure:', e.pressure);
+            console.log('Drawing started - Pointer:', e.pointerType, 'ID:', e.pointerId, 'Pressure:', e.pressure);
         }
 
         function handlePointerMove(e) {
-            // Only handle primary pointer and when drawing
-            if (!isDrawing || e.isPrimary === false) return;
+            // Only handle if we're drawing AND this is the correct pointer
+            if (!isDrawing || drawingPointerId !== e.pointerId) {
+                e.preventDefault();
+                return;
+            }
             
             e.preventDefault();
             e.stopPropagation();
@@ -1556,18 +1618,29 @@
         function clearCanvas() {
             if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                allPaths = []; // Clear all stored paths
+                currentPath = [];
                 drawingData = '';
                 saveToFirebase();
-                console.log('Canvas cleared');
+                console.log('Canvas and all paths cleared');
             }
         }
 
         function saveDrawingData() {
-            if (canvas) {
+            if (canvas && allPaths.length > 0) {
                 try {
-                    drawingData = canvas.toDataURL('image/png');
+                    // Save both the image and path data for redundancy
+                    const imageData = canvas.toDataURL('image/png');
+                    const pathData = JSON.stringify(allPaths);
+                    
+                    drawingData = JSON.stringify({
+                        image: imageData,
+                        paths: pathData,
+                        version: 2 // Mark this as the new format
+                    });
+                    
                     saveToFirebase();
-                    console.log('Drawing data saved');
+                    console.log('Drawing data saved with', allPaths.length, 'paths');
                 } catch (error) {
                     console.error('Error saving drawing data:', error);
                 }
@@ -1575,12 +1648,34 @@
         }
 
         function loadDrawingData() {
-            if (drawingData && ctx && canvas) {
+            if (!drawingData || !ctx || !canvas) return;
+            
+            try {
+                // Try to parse as new format first
+                const data = JSON.parse(drawingData);
+                
+                if (data.version === 2 && data.paths) {
+                    // New path-based format
+                    allPaths = JSON.parse(data.paths);
+                    redrawCanvas();
+                    console.log('Loaded', allPaths.length, 'paths from new format');
+                } else if (data.image) {
+                    // Fallback to image format
+                    const img = new Image();
+                    img.onload = function() {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        console.log('Loaded drawing from image format');
+                    };
+                    img.src = data.image;
+                }
+            } catch (e) {
+                // Fallback: treat as direct image data (old format)
                 const img = new Image();
                 img.onload = function() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
-                    console.log('Drawing data loaded');
+                    console.log('Loaded drawing from legacy format');
                 };
                 img.onerror = function() {
                     console.error('Error loading drawing data');
@@ -1589,11 +1684,7 @@
             }
         }
 
-        function saveSequenceNotes(notes) {
-            sequenceNotes = notes;
-            console.log('Sequence notes saved:', notes);
-            saveToFirebase();
-        }
+
 
         function renderSequenceGrid() {
             const sequenceGrid = document.getElementById('sequenceGrid');
@@ -1996,25 +2087,26 @@
                         <div class="player-status-square ${player.status === 'alive' ? 'status-alive' : 'status-dead'}" 
                              onclick="toggleStatus(${index})"
                              style="
-                                width: 50px;
-                                height: 50px;
+                                min-width: 80px;
+                                height: 60px;
                                 border-radius: 12px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 cursor: pointer;
-                                font-size: 12px;
+                                font-size: 14px;
                                 font-weight: bold;
                                 transition: all 0.3s ease;
+                                padding: 0 12px;
                                 ${player.status === 'alive' ? 
                                     'background: linear-gradient(45deg, #27ae60, #2ecc71);' : 
                                     'background: linear-gradient(45deg, #e74c3c, #c0392b);'
                                 }
                              "
-                             onmouseover="this.style.transform='scale(1.1)'"
+                             onmouseover="this.style.transform='scale(1.05)'"
                              onmouseout="this.style.transform='scale(1)'"
                         >
-                            ${player.status === 'alive' ? '✓' : '✗'}
+                            ${player.status === 'alive' ? 'Alive' : 'Dead'}
                         </div>
                     </div>
                     <div class="current-role" style="
@@ -2262,6 +2354,12 @@
                 
                 timerInterval = setInterval(function() {
                     timeLeft--;
+                    
+                    // Add tick sound for last 10 seconds
+                    if (timeLeft <= 10 && timeLeft > 0) {
+                        playTickSound();
+                    }
+                    
                     updateTimerDisplay();
                     saveToFirebase(); // Save timer state
                     
