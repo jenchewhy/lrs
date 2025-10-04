@@ -3,2068 +3,703 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Killer Game</title>
+    <title>LRS Voting Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             min-height: 100vh;
         }
-        
-        .header {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .view-selector {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .view-btn {
-            padding: 15px 30px;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-            text-decoration: none;
-        }
-        
-        .view-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-        }
-        
-        .view-btn.active {
-            background: linear-gradient(45deg, #27ae60, #229954);
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-        }
-        
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
-        
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .player-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .player-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            opacity: 0.1;
-            z-index: 1;
-        }
-        
-        .player-card > * {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .player-number {
-            font-size: 4em;
+        .title {
+            font-size: 3rem;
             font-weight: bold;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .player-status {
-            font-size: 1.1em;
-            padding: 12px 24px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 10px;
-            cursor: pointer;
-            min-width: 120px;
-        }
-        
-        .status-alive {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-        }
-        
-        .status-dead {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .timer-section {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            margin-bottom: 2rem;
         }
-        
-        .timer-display {
-            font-size: 4em;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-            font-family: 'Courier New', monospace;
+        .card {
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
         }
-        
-        .timer-controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+        .card-white {
+            background: #1e293b;
+            border: 2px solid white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
         }
-        
-        .timer-btn {
-            padding: 12px 25px;
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1.125rem;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 80px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        
-        .timer-btn:nth-child(1) {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-        }
-        
-        .timer-btn:nth-child(2) {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-            color: white;
-        }
-        
-        .timer-btn:nth-child(3) {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-        }
-        
-        .timer-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        .timer-btn:disabled {
-            opacity: 0.6;
+        .btn:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
-        
-        /* Player view colors */
-        .player-alive::before { background: linear-gradient(135deg, #27ae60, #2ecc71); }
-        .player-alive { border-color: #2ecc71; }
-        
-        .player-dead::before { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .player-dead { border-color: #c0392b; }
-        
-        /* Character colors */
-        .killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .killer { border-color: #ff0000; }
-        
-        .super-killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .super-killer { border-color: #ff0000; }
-        
-        .zombie-killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .zombie-killer { border-color: #ff0000; }
-        
-        .surgeon-killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .surgeon-killer { border-color: #ff0000; }
-        
-        .shadow-killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .shadow-killer { border-color: #ff0000; }
-        
-        .imitation-killer::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .imitation-killer { border-color: #ff0000; }
-        
-        .vampire::before { background: linear-gradient(135deg, #ff0000, #dc143c); }
-        .vampire { border-color: #ff0000; }
-        
-        .detective::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .detective { border-color: #ffd700; }
-        
-        .doctor::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .doctor { border-color: #ffd700; }
-        
-        .hunter::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .hunter { border-color: #ffd700; }
-        
-        .knight::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .knight { border-color: #ffd700; }
-        
-        .guard::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .guard { border-color: #ffd700; }
-        
-        .undercover::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .undercover { border-color: #ffd700; }
-        
-        .undertaker::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .undertaker { border-color: #ffd700; }
-        
-        .night-watcher::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .night-watcher { border-color: #ffd700; }
-        
-        .bomber::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .bomber { border-color: #ffd700; }
-        
-        .priest::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .priest { border-color: #ffd700; }
-        
-        .idiot::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .idiot { border-color: #ffd700; }
-        
-        .little-girl::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .little-girl { border-color: #ffd700; }
-        
-        .bear::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .bear { border-color: #ffd700; }
-        
-        .penguin::before { background: linear-gradient(135deg, #ffd700, #ffcc00); }
-        .penguin { border-color: #ffd700; }
-        
-        .civilian::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .civilian { border-color: #2196f3; }
-        
-        .rooster::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .rooster { border-color: #2196f3; }
-        
-        .thick-skin::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .thick-skin { border-color: #2196f3; }
-        
-        .drunkard::before { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .drunkard { border-color: #2196f3; }
-        
-        .none::before { background: linear-gradient(135deg, #374151, #6b7280); }
-        .none { border-color: #6b7280; }
-        
-        .role-dropdown {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: white;
-            font-size: 1em;
-            margin-bottom: 10px;
-            width: 100%;
-            cursor: pointer;
-        }
-        
-        .role-dropdown option {
-            background: #2c3e50;
+        .btn-green {
+            background: #22c55e;
             color: white;
         }
-        
-        .skills-section {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        .btn-green:hover:not(:disabled) {
+            background: #16a34a;
         }
-        
-        .script-section {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        .btn-red {
+            background: #ef4444;
+            color: white;
         }
-        
-        .character-selection-section {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        .btn-red:hover {
+            background: #dc2626;
         }
-        
-        .character-grid {
+        .btn-gray {
+            background: #475569;
+            color: white;
+        }
+        .btn-gray:hover {
+            background: #334155;
+        }
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
         }
-        
-        @media (max-width: 768px) {
-            .character-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
-            }
-            
-            .character-item {
-                padding: 10px 6px;
-                min-height: 45px;
-            }
-            
-            .character-name {
-                font-size: 0.8em;
-            }
-            
-            .character-checkbox {
-                width: 16px;
-                height: 16px;
-                font-size: 10px;
-            }
-            
-            .character-emoji {
-                font-size: 1em;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .character-grid {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 4px;
-            }
-            
-            .character-item {
-                padding: 12px 8px;
-                min-height: 50px;
-            }
-            
-            .character-name {
-                font-size: 0.9em;
-            }
-        }
-        
-        .character-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: none;
-            min-height: 50px;
-        }
-        
-        .character-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
-        }
-        
-        .character-item.selected {
-            border-color: #2196f3;
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(25, 118, 210, 0.3));
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .character-checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #fff;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-        }
-        
-        .character-item.selected .character-checkbox {
-            background: linear-gradient(45deg, #2196f3, #1976d2);
-            color: white;
-            border-color: #2196f3;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.5);
-            transform: scale(1.1);
-        }
-        
-        .character-item.selected .character-name {
-            color: #2196f3;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        
-        .character-item.selected .character-skill {
-            color: rgba(33, 150, 243, 0.8);
-        }
-        
-        .character-item.selected .character-emoji {
-            filter: brightness(1.2);
-            transform: scale(1.1);
-        }
-        
-        .character-name {
-            font-weight: bold;
-            font-size: 0.85em;
-            text-align: center;
-            flex-grow: 1;
-        }
-        
-        .character-emoji {
-            font-size: 1.2em;
-            flex-shrink: 0;
-        }
-        
-        /* Force green colors for character selection - override any conflicts */
-        .character-selection-section .character-item.selected {
-            border-color: #27ae60 !important;
-            background: linear-gradient(135deg, rgba(39, 174, 96, 0.4), rgba(46, 204, 113, 0.3)) !important;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4) !important;
-        }
-        
-        .character-selection-section .character-item.selected .character-checkbox {
-            background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
-            border-color: #27ae60 !important;
-            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.5) !important;
-        }
-        
-        .character-selection-section .character-item.selected .character-name {
-            color: #27ae60 !important;
-        }
-        
-        .character-selection-section .character-item.selected .character-skill {
-            color: rgba(39, 174, 96, 0.8) !important;
-        }
-        
-        .character-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .character-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .character-btn.select-all {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-        }
-        
-        .character-btn.deselect-all {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-        }
-        
-        .character-btn.essential-only {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-            color: white;
-        }
-        
-        .character-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        .script-content {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .script-phase {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid #FFD700;
-        }
-        
-        .script-phase h4 {
-            color: #FFD700;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        
-        .script-phase#nightPhase {
-            border-left: 4px solid #2196f3;
-        }
-        
-        .script-phase#nightPhase h4 {
-            color: #2196f3;
-        }
-        
-        .script-phase ol, .script-phase ul {
-            margin-left: 20px;
-            line-height: 1.6;
-        }
-        
-        .script-phase li {
-            margin-bottom: 8px;
-        }
-        
-        .script-phase strong {
-            color: #fff;
-            background: rgba(255, 215, 0, 0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        
-        .script-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin: 2px;
-        }
-        
-        .script-btn.green {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-        }
-        
-        .script-btn.red {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-        }
-        
-        .script-btn.yellow {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-        }
-        
-        .script-btn.blue {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-        }
-        
-        .script-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-        
-        .sequence-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            min-height: 80px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            align-items: flex-start;
-            align-content: flex-start;
-        }
-        
-        .sequence-item {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: move;
-            cursor: grab;
-            transition: all 0.3s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            min-height: 40px;
-            position: relative;
-        }
-        
-        .sequence-item:active {
-            cursor: grabbing;
-        }
-        
-        .sequence-item.dragging {
-            opacity: 0.7;
-            transform: rotate(2deg) scale(1.05);
-            z-index: 1000;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sequence-item.drag-over {
-            border-color: #27ae60;
-            background: rgba(39, 174, 96, 0.2);
-            transform: scale(1.02);
-        }
-        
-        .sequence-number {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-        
-        .sequence-character {
-            color: white;
-            font-size: 14px;
-        }
-        
-        .sequence-empty {
-            text-align: center;
-            color: #bdc3c7;
-            font-style: italic;
-            width: 100%;
-            padding: 20px;
-        }
-        
-        .win-conditions-section {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
-        }
-        
-        .win-conditions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .win-condition-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 15px;
+        .player-tile {
+            aspect-ratio: 1;
+            background: #334155;
+            border: 2px solid #475569;
+            border-radius: 1rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-        
-        .win-title {
-            font-weight: bold;
-            font-size: 1em;
-            margin-bottom: 5px;
-        }
-        
-        .win-title.good-guys {
-            color: #ffd700;
-        }
-        
-        .win-title.killers {
-            color: #e74c3c;
-        }
-        
-        .win-description {
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.4;
-        }
-        
-        .win-status {
-            font-size: 0.8em;
-            padding: 5px 10px;
-            border-radius: 15px;
-            display: inline-block;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        
-        .win-status.ongoing {
-            background: rgba(156, 163, 175, 0.2);
-            color: #9ca3af;
-            border: 1px solid #9ca3af;
-        }
-        
-        .win-status.good-win {
-            background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
-            border: 1px solid #ffd700;
-        }
-        
-        .win-status.killer-win {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-            border: 1px solid #e74c3c;
-        }
-        
-        .reset-section {
-            display: flex;
-            justify-content: center;
             align-items: center;
-            width: 100%;
-            margin-top: 20px;
-            padding: 10px;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            transform: scale(0.95);
         }
-        
-        .reset-btn {
-            padding: 8px 16px;
-            background: #6b7280;
-            border: 1px solid #9ca3af;
-            border-radius: 6px;
+        .player-tile:hover:not(:disabled) {
+            transform: scale(1.00);
+            background: #475569;
+        }
+        .player-tile:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .player-tile.selected {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+        .player-tile.disabled-vote {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .player-number {
+            font-size: 6rem;
+            font-weight: bold;
             color: white;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(107, 114, 128, 0.3);
+            margin-bottom: 2rem;
         }
-        
-        .reset-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.5);
-            background: #4b5563;
+        .player-badge {
+            background: #22c55e;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 1.25rem;
+            font-weight: 600;
         }
-        
-        .dead-players {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
+        .player-badge.white {
+            background: white;
+            color: #22c55e;
         }
-        
-        .dead-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-        }
-        
-        .dead-player {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .add-player-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 3px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 15px;
-            padding: 20px;
+        .timer {
+            background: #ef4444;
+            color: white;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .text-white {
+            color: white;
+        }
+        .text-gray {
+            color: #94a3b8;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .flex-center {
             display: flex;
             align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            position: relative;
+            gap: 0.5rem;
         }
-        
-        .add-player-card:hover {
-            border-color: rgba(39, 174, 96, 0.8);
-            background: rgba(39, 174, 96, 0.1);
+        .vote-result {
+            background: #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
-        
-        .add-icon {
-            font-size: 4em;
-            color: rgba(255, 255, 255, 0.6);
-            transition: all 0.3s ease;
+        .vote-result.top {
+            border: 4px solid #ef4444;
         }
-        
-        .add-player-card:hover .add-icon {
-            color: #27ae60;
-            transform: scale(1.1);
-        }
-        
-        .remove-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            background: #e74c3c;
+        .voter-avatar {
+            width: 5rem;
+            height: 5rem;
+            background: #ef4444;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
             color: white;
-            transition: all 0.3s ease;
-        }
-        
-        .remove-icon:hover {
-            background: #c0392b;
-            transform: scale(1.1);
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .firebase-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 12px;
+            font-size: 2.5rem;
             font-weight: bold;
+        }
+        .voter-chip {
+            background: #475569;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .vote-count {
+            background: #0f172a;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .flex-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            .player-number {
+                font-size: 4rem;
+            }
+            .grid-results {
+                grid-template-columns: 1fr;
+            }
+        }
+        .grid-results {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        .no-results {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 1.25rem;
+            padding: 5rem 0;
+        }
+        .connection-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #22c55e;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
             z-index: 1000;
         }
-        
-        .firebase-connected {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .firebase-disconnected {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        /* Enhanced Drawing Canvas Styles for iPad Pro */
-        #drawingCanvas {
-            width: 100%;
-            aspect-ratio: 1.54/1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            cursor: crosshair;
-            /* Critical for Apple Pencil support */
-            touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            /* Disable default Safari behaviors */
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        #drawingCanvas.eraser-mode {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="white" stroke-width="2"/></svg>') 12 12, auto;
-        }
-        
-        @media (max-width: 768px) {
-            .player-number {
-                font-size: 3em;
-            }
-            
-            .players-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 15px;
-            }
-            
-            .player-card {
-                padding: 15px;
-            }
+        .connection-status.disconnected {
+            background: #ef4444;
         }
     </style>
 </head>
 <body>
-    <!-- Firebase Status Indicator -->
-    <div id="firebaseStatus" class="firebase-status firebase-disconnected">
-        🔥 Local Mode
-    </div>
+    <div id="connectionStatus" class="connection-status">Connecting...</div>
+    <div id="app"></div>
 
-    <div class="header">
-        <h1>🔪 The Killer Game 🔪</h1>
-        <div class="view-selector">
-            <button class="view-btn" id="playerViewBtn" onclick="showPlayerView()">Player View</button>
-            <button class="view-btn" id="gmViewBtn" onclick="showGMView()">GM View</button>
-        </div>
-    </div>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, set, update, get, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    <div class="container">
-        <!-- Player View -->
-        <div id="playerView">
-            <div class="timer-section">
-                <div class="timer-display" id="timerDisplay">01:00</div>
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em;">Player Status</h2>
-            <div class="players-grid" id="playerGrid">
-                <!-- Will be populated by JavaScript -->
-            </div>
-            
-            <div class="dead-players">
-                <h3 style="text-align: center; margin-bottom: 20px; font-size: 1.5em;">💀 Dead Players</h3>
-                <div class="dead-list" id="deadList">
-                    <!-- Dead players will appear here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- GM View -->
-        <div id="gmView" class="hidden">
-            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em;">Game Master Panel</h2>
-            
-            <div class="character-selection-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">🎭 Character Selection</h3>
-                <div class="character-grid" id="characterGrid">
-                    <!-- Characters will be populated dynamically -->
-                </div>
-                <div class="character-controls">
-                    <button class="character-btn select-all" onclick="selectAllCharacters()">Select All</button>
-                    <button class="character-btn deselect-all" onclick="deselectAllCharacters()">Deselect All</button>
-                    <button class="character-btn essential-only" onclick="selectEssentialOnly()">Essential Only</button>
-                </div>
-            </div>
-            
-            <div class="timer-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">⏱️ Game Timer</h3>
-                <div class="timer-display" id="timerDisplayGM">01:00</div>
-                <div class="timer-controls" style="display: flex; justify-content: center; gap: 15px;">
-                    <button class="timer-btn" id="startBtnGM" onclick="startTimer()">Start</button>
-                    <button class="timer-btn" id="pauseBtnGM" onclick="pauseTimer()">Pause</button>
-                    <button class="timer-btn" id="resetTimerBtnGM" onclick="resetTimer()">Reset</button>
-                </div>
-            </div>
-            
-            <div class="skills-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">🎤 Speech Sequence</h3>
-                <div class="sequence-grid" id="sequenceGrid">
-                    <!-- Speech sequence will be populated dynamically -->
-                </div>
-
-                
-                <div class="drawing-section" style="margin-top: 20px;">
-                    <h4 style="margin-bottom: 10px; font-size: 1.1em; color: #fff;">✏️ Drawing Pad</h4>
-                    <div class="drawing-controls" style="
-                        display: flex; 
-                        gap: 10px; 
-                        margin-bottom: 10px; 
-                        align-items: center;
-                        flex-wrap: wrap;
-                    ">
-                        <label style="color: white; font-size: 14px;">Color:</label>
-                        <input type="color" id="penColor" value="#ffffff" style="
-                            width: 40px; 
-                            height: 30px; 
-                            border: none; 
-                            border-radius: 4px; 
-                            cursor: pointer;
-                        ">
-                        <label style="color: white; font-size: 14px;">Pen Size:</label>
-                        <input type="range" id="penSize" min="1" max="10" value="3" style="
-                            width: 80px;
-                        ">
-                        <span id="sizeDisplay" style="color: white; font-size: 12px; min-width: 25px;">3px</span>
-                        <button id="eraserBtn" onclick="toggleEraser()" style="
-                            background: linear-gradient(45deg, #f39c12, #e67e22);
-                            border: none;
-                            border-radius: 4px;
-                            color: white;
-                            padding: 6px 12px;
-                            cursor: pointer;
-                            font-size: 12px;
-                            font-weight: bold;
-                            transition: all 0.3s ease;
-                        ">✏️ Pen</button>
-                        <label id="eraserSizeLabel" style="color: white; font-size: 14px; display: none;">Eraser Size:</label>
-                        <input type="range" id="eraserSize" min="5" max="50" value="20" style="
-                            width: 80px;
-                            display: none;
-                        ">
-                        <span id="eraserSizeDisplay" style="color: white; font-size: 12px; min-width: 25px; display: none;">20px</span>
-                        <button onclick="clearCanvas()" style="
-                            background: linear-gradient(45deg, #e74c3c, #c0392b);
-                            border: none;
-                            border-radius: 4px;
-                            color: white;
-                            padding: 6px 12px;
-                            cursor: pointer;
-                            font-size: 12px;
-                            font-weight: bold;
-                        ">Clear</button>
-                    </div>
-                    <canvas 
-                        id="drawingCanvas" 
-                        width="800" 
-                        height="520"
-                    ></canvas>
-                </div>
-            </div>
-            
-            <div class="players-grid" id="adminGrid">
-                <!-- Admin controls will be generated by JavaScript -->
-            </div>
-            
-            <div class="win-conditions-section">
-                <h3 style="margin-bottom: 15px; font-size: 1.3em;">🏆 Check Win Conditions</h3>
-                <div class="win-conditions-grid" id="winConditionsGrid">
-                    <div class="win-condition-item">
-                        <div class="win-title good-guys">Good Guys Victory</div>
-                        <div class="win-description">All red characters (killers) must be eliminated</div>
-                        <div class="win-status ongoing">Game in progress</div>
-                    </div>
-                    
-                    <div class="win-condition-item">
-                        <div class="win-title killers">Killers Victory</div>
-                        <div class="win-description">All yellow characters dead OR all blue characters dead OR 2 reds + 1 yellow + 1 blue remaining</div>
-                        <div class="win-status ongoing">Game in progress</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="reset-section">
-                <button class="reset-btn" onclick="resetAll()">Reset All</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ===========================================
-        // GAME DATA AND LOGIC
-        // ===========================================
-
-        // Updated character data based on your table
-        const characterData = {
-            '无': { skill: '', color: 'none', emoji: '' },
-            // Red Characters (Bright Red)
-            '狼人': { skill: 'Kill', color: 'killer', emoji: '🔴' },
-            '狼王': { skill: 'Explode', color: 'super-killer', emoji: '🔴' },
-            '石像鬼': { skill: 'Inspect', color: 'zombie-killer', emoji: '🔴' },
-            '机械狼': { skill: 'Imitate', color: 'surgeon-killer', emoji: '🔴' },
-            '禁锢之影': { skill: 'Lock', color: 'shadow-killer', emoji: '🔴' },
-            '狼美人': { skill: 'Seduce', color: 'imitation-killer', emoji: '🔴' },
-            '憎恶猎人': { skill: 'Take Down', color: 'vampire', emoji: '🔴' },
-            '其他狼': { skill: 'Other', color: 'killer', emoji: '🔴' },
-            // Yellow Characters
-            '女巫': { skill: 'Heal and Poison', color: 'doctor', emoji: '🟡' },
-            '预言家': { skill: 'Inspect', color: 'detective', emoji: '🟡' },
-            '骑士': { skill: 'Challenge', color: 'knight', emoji: '🟡' },
-            '猎人': { skill: 'Take Down', color: 'hunter', emoji: '🟡' },
-            '守卫': { skill: 'Protect', color: 'guard', emoji: '🟡' },
-            '守夜人': { skill: 'Inspect Voted', color: 'undercover', emoji: '🟡' },
-            '通灵师': { skill: 'Inspect Actual', color: 'undertaker', emoji: '🟡' },
-            '月夜祭司': { skill: 'Freeze Kill', color: 'night-watcher', emoji: '🟡' },
-            '织梦人': { skill: 'Dream Weave', color: 'bomber', emoji: '🟡' },
-            '炸弹师': { skill: 'Bomb', color: 'priest', emoji: '🟡' },
-            '白痴': { skill: 'Idiot', color: 'idiot', emoji: '🟡' },
-            '小女孩': { skill: 'Peek', color: 'little-girl', emoji: '🟡' },
-            '熊': { skill: 'Growl', color: 'bear', emoji: '🟡' },
-            '企鹅': { skill: 'Freeze', color: 'penguin', emoji: '🟡' },
-            '其他神': { skill: 'Other', color: 'detective', emoji: '🟡' },
-            '村民': { skill: '', color: 'civilian', emoji: '🔵' },
-            // Blue Characters
-            '大公鸡': { skill: '', color: 'rooster', emoji: '🔵' },
-            '厚皮狼': { skill: '', color: 'thick-skin', emoji: '🔵' },
-            '老酒鬼': { skill: '', color: 'drunkard', emoji: '🔵' },
-            '其他民': { skill: '', color: 'civilian', emoji: '🔵' }
+        // ==========================================
+        // FIREBASE CONFIG - REPLACE WITH YOUR CONFIG
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        const roles = Object.keys(characterData);
-        const repeatableRoles = ['狼人', '村民']; // Essential characters that can be repeated
-        
-        let players = [];
-        let skillStates = {};
-        let selectedCharacters = new Set(['无', '狼人', '村民']); // Start with essential characters
-        let currentView = 'player'; // 'player' or 'gm'
-        let deathOrder = []; // Track the order players die
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        // Timer variables
+        // State variables
+        let page = 'voting';
+        let myPlayerNumber = null;
+        let gameState = {
+            totalPlayers: 10,
+            selectedPlayers: [],
+            isVoting: false,
+            timeLeft: 10,
+            currentRound: 1,
+            votes: {},
+            voteHistory: []
+        };
+
+        let selectedVote = null;
         let timerInterval = null;
-        let timeLeft = 60;
-        let isTimerRunning = false;
+        let isConnected = false;
 
-        // Initialize with 10 players
-        for (let i = 1; i <= 10; i++) {
-            players.push({
-                number: i,
-                role: '无',
-                status: 'alive'
-            });
-        }
-
-        // ===========================================
-        // VIEW MANAGEMENT
-        // ===========================================
-
-        function showPlayerView() {
-            currentView = 'player';
-            document.getElementById('playerView').classList.remove('hidden');
-            document.getElementById('gmView').classList.add('hidden');
-            document.getElementById('playerViewBtn').classList.add('active');
-            document.getElementById('gmViewBtn').classList.remove('active');
-            renderPlayerView();
-        }
-
-        function showGMView() {
-            currentView = 'gm';
-            document.getElementById('playerView').classList.add('hidden');
-            document.getElementById('gmView').classList.remove('hidden');
-            document.getElementById('playerViewBtn').classList.remove('active');
-            document.getElementById('gmViewBtn').classList.add('active');
-            console.log('=== SWITCHING TO GM VIEW ===');
-            console.log('Selected characters:', selectedCharacters);
-            console.log('Current players:', players);
-            renderCharacterSelection();
-            renderAdminView();
-            
-            // Initialize canvas after DOM is ready
-            setTimeout(() => {
-                initializeCanvas();
-            }, 100);
-        }
-
-        function getRoleClass(role) {
-            return characterData[role]?.color || 'none';
-        }
-
-        function renderCharacterSelection() {
-            const characterGrid = document.getElementById('characterGrid');
-            if (!characterGrid) return;
-            
-            characterGrid.innerHTML = '';
-            
-            roles.forEach(role => {
-                if (role === '无') return;
-                
-                const item = document.createElement('div');
-                item.className = `character-item ${selectedCharacters.has(role) ? 'selected' : ''}`;
-                
-                const character = characterData[role];
-                item.innerHTML = `
-                    <div class="character-checkbox">${selectedCharacters.has(role) ? '✓' : ''}</div>
-                    <div class="character-name">${role}</div>
-                    <div class="character-emoji">${character.emoji}</div>
-                `;
-                
-                item.onclick = function() {
-                    if (selectedCharacters.has(role)) {
-                        selectedCharacters.delete(role);
-                        players.forEach(player => {
-                            if (player.role === role) {
-                                player.role = '无';
-                            }
-                        });
-                    } else {
-                        selectedCharacters.add(role);
-                    }
-                    renderCharacterSelection();
-                    renderAdminView();
-                    renderSequenceGrid(); // Update sequence when characters are selected/deselected
-                };
-                
-                characterGrid.appendChild(item);
-            });
-        }
-
-        function selectAllCharacters() {
-            roles.forEach(role => {
-                if (role !== '无') {
-                    selectedCharacters.add(role);
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-        }
-        
-        function deselectAllCharacters() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            players.forEach(player => {
-                player.role = '无';
-            });
-            speechSequence = []; // Clear sequence when deselecting all
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-        }
-        
-        function selectEssentialOnly() {
-            selectedCharacters.clear();
-            selectedCharacters.add('无');
-            selectedCharacters.add('狼人'); // Essential
-            selectedCharacters.add('村民'); // Essential
-            players.forEach(player => {
-                if (!selectedCharacters.has(player.role)) {
-                    player.role = '无';
-                }
-            });
-            renderCharacterSelection();
-            renderAdminView();
-            renderSequenceGrid();
-        }
-
-        function getAvailableRoles(currentPlayerIndex) {
-            const usedRoles = players
-                .filter((player, index) => index !== currentPlayerIndex && player.role !== '无')
-                .map(player => player.role);
-            
-            return Array.from(selectedCharacters).filter(role => {
-                if (role === '无') return true;
-                if (repeatableRoles.includes(role)) return true;
-                return !usedRoles.includes(role);
-            });
-        }
-
-        let speechSequence = []; // Array to store the order of characters
-        let drawingData = ''; // String to store canvas drawing data
-
-        // Drawing canvas variables - Simplified
-        let canvas = null;
-        let ctx = null;
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-        let isEraserMode = false;
-
-        function toggleEraser() {
-            isEraserMode = !isEraserMode;
-            const eraserBtn = document.getElementById('eraserBtn');
-            const eraserSizeLabel = document.getElementById('eraserSizeLabel');
-            const eraserSize = document.getElementById('eraserSize');
-            const eraserSizeDisplay = document.getElementById('eraserSizeDisplay');
-            const canvas = document.getElementById('drawingCanvas');
-            
-            if (isEraserMode) {
-                eraserBtn.innerHTML = '🧽 Eraser';
-                eraserBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
-                eraserSizeLabel.style.display = 'inline';
-                eraserSize.style.display = 'inline';
-                eraserSizeDisplay.style.display = 'inline';
-                eraserSizeDisplay.textContent = eraserSize.value + 'px';
-                canvas.classList.add('eraser-mode');
-            } else {
-                eraserBtn.innerHTML = '✏️ Pen';
-                eraserBtn.style.background = 'linear-gradient(45deg, #f39c12, #e67e22)';
-                eraserSizeLabel.style.display = 'none';
-                eraserSize.style.display = 'none';
-                eraserSizeDisplay.style.display = 'none';
-                canvas.classList.remove('eraser-mode');
-            }
-        }
-
-        function initializeCanvas() {
-            canvas = document.getElementById('drawingCanvas');
-            if (!canvas) {
-                console.error('Canvas element not found');
-                return;
-            }
-            
-            ctx = canvas.getContext('2d');
-            if (!ctx) {
-                console.error('Could not get canvas context');
-                return;
-            }
-            
-            // Set up drawing settings
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            // Set up size displays
-            const penSize = document.getElementById('penSize');
-            const sizeDisplay = document.getElementById('sizeDisplay');
-            const eraserSize = document.getElementById('eraserSize');
-            const eraserSizeDisplay = document.getElementById('eraserSizeDisplay');
-            
-            if (penSize && sizeDisplay) {
-                penSize.addEventListener('input', function() {
-                    sizeDisplay.textContent = this.value + 'px';
-                });
-            }
-            
-            if (eraserSize && eraserSizeDisplay) {
-                eraserSize.addEventListener('input', function() {
-                    eraserSizeDisplay.textContent = this.value + 'px';
-                });
-            }
-            
-            // Mouse events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // Touch events for mobile/iPad
-            canvas.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent('mousedown', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            });
-            
-            canvas.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent('mousemove', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            });
-            
-            canvas.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                const mouseEvent = new MouseEvent('mouseup', {});
-                canvas.dispatchEvent(mouseEvent);
-            });
-            
-            console.log('Drawing canvas initialized with eraser support');
-        }
-
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getMousePos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            console.log('Drawing started at', pos);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            
-            const pos = getMousePos(e);
-            
-            if (isEraserMode) {
-                // Eraser mode
-                const eraserSize = document.getElementById('eraserSize').value;
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = eraserSize;
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            } else {
-                // Pen mode
-                const penColor = document.getElementById('penColor').value;
-                const penSize = document.getElementById('penSize').value;
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = penColor;
-                ctx.lineWidth = penSize;
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            }
-            
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function stopDrawing() {
-            if (isDrawing) {
-                isDrawing = false;
-                console.log('Drawing stopped');
-            }
-        }
-
-        function clearCanvas() {
-            if (ctx && canvas) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.globalCompositeOperation = 'source-over'; // Reset composite operation
-                drawingData = '';
-                console.log('Canvas cleared');
-            }
-        }
-
-        function renderSequenceGrid() {
-            const sequenceGrid = document.getElementById('sequenceGrid');
-            if (!sequenceGrid) return;
-            
-            console.log('Rendering speech sequence...');
-            console.log('Selected characters:', selectedCharacters);
-            console.log('Current sequence:', speechSequence);
-            
-            // Get all selected characters except "无"
-            const availableCharacters = Array.from(selectedCharacters).filter(char => char !== '无');
-            
-            // Initialize sequence if empty, but only with characters that have skills or are important
-            if (speechSequence.length === 0 && availableCharacters.length > 0) {
-                speechSequence = [...availableCharacters];
-            }
-            
-            // Remove characters from sequence that are no longer selected
-            speechSequence = speechSequence.filter(char => selectedCharacters.has(char));
-            
-            // Add newly selected characters to the end of sequence
-            availableCharacters.forEach(char => {
-                if (!speechSequence.includes(char)) {
-                    speechSequence.push(char);
-                }
-            });
-            
-            if (speechSequence.length === 0) {
-                sequenceGrid.innerHTML = '<div class="sequence-empty">Select characters above to create speech sequence</div>';
-                return;
-            }
-            
-            // Render sequence items
-            sequenceGrid.innerHTML = '';
-            
-            speechSequence.forEach((character, index) => {
-                const characterData_item = characterData[character];
-                const bgColor = getSequenceItemColor(characterData_item?.color);
-                
-                const sequenceItem = document.createElement('div');
-                sequenceItem.className = 'sequence-item';
-                sequenceItem.draggable = true;
-                sequenceItem.dataset.character = character;
-                sequenceItem.dataset.index = index;
-                
-                sequenceItem.style.background = bgColor.background;
-                sequenceItem.style.borderColor = bgColor.border;
-                
-                sequenceItem.innerHTML = `
-                    <div class="sequence-number">${index + 1}</div>
-                    <div class="sequence-character">${character}</div>
-                `;
-                
-                // Add drag event listeners
-                addDragEventListeners(sequenceItem);
-                
-                sequenceGrid.appendChild(sequenceItem);
-            });
-            
-            console.log('Sequence rendered with', speechSequence.length, 'characters');
-        }
-
-        function getSequenceItemColor(characterColor) {
-            if (!characterColor) return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
-            
-            if (characterColor.includes('killer') || characterColor === 'vampire') {
-                return { background: 'rgba(231, 76, 60, 0.3)', border: 'rgba(231, 76, 60, 0.6)' };
-            } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
-                return { background: 'rgba(255, 215, 0, 0.3)', border: 'rgba(255, 215, 0, 0.6)' };
-            } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
-                return { background: 'rgba(33, 150, 243, 0.3)', border: 'rgba(33, 150, 243, 0.6)' };
-            }
-            return { background: 'rgba(107, 114, 128, 0.3)', border: 'rgba(107, 114, 128, 0.6)' };
-        }
-
-        function addDragEventListeners(element) {
-            // Mouse events
-            element.addEventListener('dragstart', handleDragStart);
-            element.addEventListener('dragover', handleDragOver);
-            element.addEventListener('drop', handleDrop);
-            element.addEventListener('dragend', handleDragEnd);
-            
-            // Touch events for mobile/iPad (sequence drag and drop - different from canvas)
-            element.addEventListener('touchstart', handleSequenceTouchStart);
-            element.addEventListener('touchmove', handleSequenceTouchMove);
-            element.addEventListener('touchend', handleSequenceTouchEnd);
-        }
-
-        let draggedElement = null;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        function handleDragStart(e) {
-            draggedElement = e.target;
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', e.target.outerHTML);
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            const target = e.target.closest('.sequence-item');
-            if (target && target !== draggedElement) {
-                target.classList.add('drag-over');
-            }
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            
-            const target = e.target.closest('.sequence-item');
-            if (target && draggedElement && target !== draggedElement) {
-                const draggedIndex = parseInt(draggedElement.dataset.index);
-                const targetIndex = parseInt(target.dataset.index);
-                
-                // Reorder the sequence array
-                const draggedCharacter = speechSequence[draggedIndex];
-                speechSequence.splice(draggedIndex, 1);
-                speechSequence.splice(targetIndex, 0, draggedCharacter);
-                
-                renderSequenceGrid();
-            }
-            
-            // Clean up
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over');
-            });
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            draggedElement = null;
-        }
-
-        // Touch event handlers for mobile/iPad (for drag and drop, not drawing)
-        function handleSequenceTouchStart(e) {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            draggedElement = e.target.closest('.sequence-item');
-            if (draggedElement) {
-                draggedElement.classList.add('dragging');
-            }
-        }
-
-        function handleSequenceTouchMove(e) {
-            e.preventDefault();
-            if (!draggedElement) return;
-            
-            const touch = e.touches[0];
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const target = elementBelow?.closest('.sequence-item');
-            
-            // Clear previous highlights
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over');
-            });
-            
-            if (target && target !== draggedElement) {
-                target.classList.add('drag-over');
-            }
-        }
-
-        function handleSequenceTouchEnd(e) {
-            if (!draggedElement) return;
-            
-            const touch = e.changedTouches[0];
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const target = elementBelow?.closest('.sequence-item');
-            
-            if (target && target !== draggedElement) {
-                const draggedIndex = parseInt(draggedElement.dataset.index);
-                const targetIndex = parseInt(target.dataset.index);
-                
-                // Reorder the sequence array
-                const draggedCharacter = speechSequence[draggedIndex];
-                speechSequence.splice(draggedIndex, 1);
-                speechSequence.splice(targetIndex, 0, draggedCharacter);
-                
-                renderSequenceGrid();
-            }
-            
-            // Clean up
-            document.querySelectorAll('.sequence-item').forEach(item => {
-                item.classList.remove('drag-over', 'dragging');
-            });
-            
-            draggedElement = null;
-        }
-
-        function checkWinConditions() {
-            const alivePlayers = players.filter(p => p.status === 'alive');
-            const aliveByColor = {
-                red: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && (color.includes('killer') || color === 'vampire');
-                }).length,
-                yellow: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && ['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(color);
-                }).length,
-                blue: alivePlayers.filter(p => {
-                    const color = characterData[p.role]?.color;
-                    return color && ['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(color);
-                }).length
-            };
-            
-            // Good guys win if all red characters are dead
-            const goodGuysWin = aliveByColor.red === 0 && (aliveByColor.yellow > 0 || aliveByColor.blue > 0);
-            
-            // Killers win if:
-            // 1. All yellow are dead OR all blue are dead (and there are red players alive)
-            // 2. OR if there are exactly 2 reds, 1 yellow, and 1 blue left
-            const killersWin = aliveByColor.red > 0 && (
-                aliveByColor.yellow === 0 || 
-                aliveByColor.blue === 0 ||
-                (aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1)
-            );
-            
-            return { goodGuysWin, killersWin, aliveByColor };
-        }
-
-        function renderWinConditions() {
-            const winConditionsGrid = document.getElementById('winConditionsGrid');
-            if (!winConditionsGrid) return;
-            
-            const { goodGuysWin, killersWin, aliveByColor } = checkWinConditions();
-            
-            // Check if the specific 2-1-1 condition is met
-            const specialKillerWin = aliveByColor.red === 2 && aliveByColor.yellow === 1 && aliveByColor.blue === 1;
-            
-            let killerWinReason;
-            if (killersWin) {
-                if (specialKillerWin) {
-                    killerWinReason = 'KILLERS WIN! (2 Reds + 1 Yellow + 1 Blue)';
-                } else if (aliveByColor.yellow === 0) {
-                    killerWinReason = 'KILLERS WIN! (All Yellow Dead)';
-                } else if (aliveByColor.blue === 0) {
-                    killerWinReason = 'KILLERS WIN! (All Blue Dead)';
-                } else {
-                    killerWinReason = 'KILLERS WIN!';
-                }
-            } else {
-                killerWinReason = `Red: ${aliveByColor.red}, Yellow: ${aliveByColor.yellow}, Blue: ${aliveByColor.blue}`;
-            }
-            
-            winConditionsGrid.innerHTML = `
-                <div class="win-condition-item">
-                    <div class="win-title good-guys">Good Guys Victory</div>
-                    <div class="win-description">All red characters (killers) must be eliminated</div>
-                    <div class="win-status ${goodGuysWin ? 'good-win' : 'ongoing'}">
-                        ${goodGuysWin ? 'GOOD GUYS WIN!' : `Red characters alive: ${aliveByColor.red}`}
-                    </div>
-                </div>
-                
-                <div class="win-condition-item">
-                    <div class="win-title killers">Killers Victory</div>
-                    <div class="win-description">All yellow characters dead OR all blue characters dead OR 2 reds + 1 yellow + 1 blue remaining</div>
-                    <div class="win-status ${killersWin ? 'killer-win' : 'ongoing'}">
-                        ${killerWinReason}
-                    </div>
-                </div>
-            `;
-        }
-
-        function addPlayer() {
-            if (players.length < 15) {
-                players.push({
-                    number: players.length + 1,
-                    role: '无',
-                    status: 'alive'
-                });
-                renderAdminView();
-                renderPlayerView();
-            }
-        }
-
-        function removePlayer(playerNumber) {
-            if (players.length > 10 && playerNumber > 10) {
-                players = players.filter(player => player.number !== playerNumber);
-                players.forEach((player, index) => {
-                    player.number = index + 1;
-                });
-                renderAdminView();
-                renderPlayerView();
-            }
-        }
-
-        function renderPlayerView() {
-            const grid = document.getElementById('playerGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            players.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${player.status === 'alive' ? 'player-alive' : 'player-dead'}`;
-                card.innerHTML = `
-                    <div class="player-number">${player.number}</div>
-                    <div class="player-status ${player.status === 'alive' ? 'status-alive' : 'status-dead'}">
-                        ${player.status.toUpperCase()}
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            });
-            
-            renderDeadList();
-        }
-
-        function renderAdminView() {
-            console.log('=== RENDERING ADMIN VIEW ===');
-            const grid = document.getElementById('adminGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            players.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${getRoleClass(player.role)}`;
-                
-                const currentRole = player.role;
-                const emoji = characterData[currentRole]?.emoji || '';
-                const availableRoles = getAvailableRoles(index);
-                
-                // Create character selection icons
-                const characterIcons = availableRoles.map(role => {
-                    const isSelected = role === currentRole;
-                    const roleText = role.length >= 2 ? role.substring(0, 2) : role;
-                    const characterColor = characterData[role]?.color || 'none';
-                    
-                    // Get colors based on character type
-                    let bgColor, borderColor;
-                    if (characterColor.includes('killer') || characterColor === 'vampire') {
-                        // Red characters
-                        bgColor = isSelected ? 'rgba(231, 76, 60, 0.8)' : 'rgba(231, 76, 60, 0.3)';
-                        borderColor = isSelected ? '#e74c3c' : 'rgba(231, 76, 60, 0.6)';
-                    } else if (['doctor', 'detective', 'knight', 'hunter', 'guard', 'undercover', 'undertaker', 'night-watcher', 'bomber', 'priest', 'idiot', 'little-girl', 'bear', 'penguin'].includes(characterColor)) {
-                        // Yellow characters
-                        bgColor = isSelected ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.3)';
-                        borderColor = isSelected ? '#ffd700' : 'rgba(255, 215, 0, 0.6)';
-                    } else if (['rooster', 'thick-skin', 'drunkard', 'civilian'].includes(characterColor)) {
-                        // Blue characters
-                        bgColor = isSelected ? 'rgba(33, 150, 243, 0.8)' : 'rgba(33, 150, 243, 0.3)';
-                        borderColor = isSelected ? '#2196f3' : 'rgba(33, 150, 243, 0.6)';
-                    } else {
-                        // None/default
-                        bgColor = isSelected ? 'rgba(107, 114, 128, 0.8)' : 'rgba(107, 114, 128, 0.3)';
-                        borderColor = isSelected ? '#6b7280' : 'rgba(107, 114, 128, 0.6)';
-                    }
-                    
-                    return `
-                        <div class="char-icon ${isSelected ? 'selected' : ''}" 
-                             onclick="selectCharacterForPlayer(${index}, '${role}')"
-                             title="${role}"
-                             style="
-                                display: inline-block;
-                                width: 36px;
-                                height: 32px;
-                                margin: 2px;
-                                background: ${bgColor};
-                                border: 2px solid ${borderColor};
-                                border-radius: 6px;
-                                cursor: pointer;
-                                transition: all 0.2s ease;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 12px;
-                                font-weight: bold;
-                                color: white;
-                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-                                user-select: none;
-                                -webkit-user-select: none;
-                                -webkit-tap-highlight-color: transparent;
-                             "
-                             onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)'"
-                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
-                        >${roleText}</div>
-                    `;
-                }).join('');
-                
-                card.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                        <div class="player-number" style="margin: 0;">${player.number}</div>
-                        <div class="player-status-square ${player.status === 'alive' ? 'status-alive' : 'status-dead'}" 
-                             onclick="toggleStatus(${index})"
-                             style="
-                                min-width: 80px;
-                                height: 60px;
-                                border-radius: 12px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-size: 14px;
-                                font-weight: bold;
-                                transition: all 0.3s ease;
-                                padding: 0 12px;
-                                ${player.status === 'alive' ? 
-                                    'background: linear-gradient(45deg, #27ae60, #2ecc71);' : 
-                                    'background: linear-gradient(45deg, #e74c3c, #c0392b);'
-                                }
-                             "
-                             onmouseover="this.style.transform='scale(1.05)'"
-                             onmouseout="this.style.transform='scale(1)'"
-                        >
-                            ${player.status === 'alive' ? 'Alive' : 'Dead'}
-                        </div>
-                    </div>
-                    <div class="current-role" style="
-                        background: rgba(255, 255, 255, 0.2);
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        border-radius: 8px;
-                        padding: 8px 12px;
-                        color: white;
-                        font-size: 1em;
-                        margin-bottom: 10px;
-                        text-align: center;
-                        min-height: 40px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        font-weight: bold;
-                    ">
-                        <span style="font-size: 1.2em;">${emoji}</span>
-                        <span>${currentRole}</span>
-                    </div>
-                    <div class="character-selection" style="
-                        display: flex;
-                        flex-wrap: wrap;
-                        justify-content: center;
-                        gap: 2px;
-                        margin-bottom: 10px;
-                        padding: 5px;
-                        background: rgba(0, 0, 0, 0.2);
-                        border-radius: 6px;
-                        min-height: 40px;
-                        align-items: center;
-                    ">
-                        ${characterIcons}
-                    </div>
-                `;
-                
-                if (player.number > 10) {
-                    const removeIcon = document.createElement('div');
-                    removeIcon.className = 'remove-icon';
-                    removeIcon.innerHTML = '×';
-                    removeIcon.onclick = function(e) {
-                        e.stopPropagation();
-                        removePlayer(player.number);
-                    };
-                    card.appendChild(removeIcon);
-                }
-                
-                grid.appendChild(card);
-            });
-            
-            if (players.length < 15) {
-                for (let i = players.length + 1; i <= 15; i++) {
-                    const addCard = document.createElement('div');
-                    addCard.className = 'add-player-card';
-                    addCard.innerHTML = '<div class="add-icon">+</div>';
-                    addCard.onclick = function() { addPlayer(); };
-                    grid.appendChild(addCard);
-                    if (players.length >= 14) break;
-                }
-            }
-            
-            console.log('About to render sequence grid...');
-            renderSequenceGrid();
-            renderWinConditions();
-            console.log('=== ADMIN VIEW RENDERED ===');
-        }
-
-        function renderDeadList() {
-            const deadList = document.getElementById('deadList');
-            if (!deadList) return;
-            
-            // Get dead players in the order they died
-            const deadPlayersInOrder = [];
-            
-            // First, add players in death order
-            deathOrder.forEach(playerNumber => {
-                const player = players.find(p => p.number === playerNumber && p.status === 'dead');
-                if (player) {
-                    deadPlayersInOrder.push(player);
-                }
-            });
-            
-            // Then add any dead players not in death order (shouldn't happen, but just in case)
-            players.forEach(player => {
-                if (player.status === 'dead' && !deadPlayersInOrder.find(p => p.number === player.number)) {
-                    deadPlayersInOrder.push(player);
-                }
-            });
-            
-            if (deadPlayersInOrder.length === 0) {
-                deadList.innerHTML = '<div style="text-align: center; color: #bdc3c7;">No casualties yet...</div>';
-            } else {
-                deadList.innerHTML = deadPlayersInOrder.map(player => 
-                    `<div class="dead-player">Player ${player.number}</div>`
-                ).join('');
-            }
-        }
-
-        function toggleStatus(index) {
-            console.log('Toggling status for player', index, 'from', players[index].status);
-            const player = players[index];
-            const wasAlive = player.status === 'alive';
-            
-            player.status = wasAlive ? 'dead' : 'alive';
-            
-            // Track death order
-            if (wasAlive) {
-                // Player just died - add to death order if not already there
-                if (!deathOrder.includes(player.number)) {
-                    deathOrder.push(player.number);
-                }
-            } else {
-                // Player came back to life - remove from death order
-                deathOrder = deathOrder.filter(num => num !== player.number);
-            }
-            
-            console.log('New status:', player.status);
-            console.log('Death order:', deathOrder);
-            
-            // Immediately re-render views
-            renderAdminView();
-            renderPlayerView();
-        }
-
-        function selectCharacterForPlayer(playerIndex, characterRole) {
-            console.log(`Assigning ${characterRole} to player ${playerIndex + 1}`);
-            players[playerIndex].role = characterRole;
-            renderAdminView();
-            renderSequenceGrid();
-        }
-
-        function resetAll() {
-            players.forEach(player => {
-                player.role = '无';
-                player.status = 'alive';
-            });
-            
-            players = players.slice(0, 10);
-            players.forEach((player, index) => {
-                player.number = index + 1;
-            });
-            
-            speechSequence = []; // Clear speech sequence
-            drawingData = ''; // Clear drawing
-            deathOrder = [];
-            
-            // Clear the canvas
-            clearCanvas();
-            
-            renderAdminView();
-            renderPlayerView();
-            renderSequenceGrid();
-        }
-
-        // ===========================================
-        // TIMER FUNCTIONS
-        // ===========================================
-
-        function updateTimerDisplay() {
-            const timerDisplay = document.getElementById('timerDisplay');
-            const timerDisplayGM = document.getElementById('timerDisplayGM');
-            
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timerDisplay) timerDisplay.textContent = timeString;
-            if (timerDisplayGM) timerDisplayGM.textContent = timeString;
-        }
-
-        function startTimer() {
-            if (!isTimerRunning) {
-                isTimerRunning = true;
-                const startBtn = document.getElementById('startBtn');
-                const pauseBtn = document.getElementById('pauseBtn');
-                const startBtnGM = document.getElementById('startBtnGM');
-                const pauseBtnGM = document.getElementById('pauseBtnGM');
-                
-                if (startBtn) startBtn.disabled = true;
-                if (pauseBtn) pauseBtn.disabled = false;
-                if (startBtnGM) startBtnGM.disabled = true;
-                if (pauseBtnGM) pauseBtnGM.disabled = false;
-                
-                timerInterval = setInterval(function() {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    
-                    if (timeLeft <= 0) {
-                        pauseTimer();
-                        timeLeft = 0;
-                        updateTimerDisplay();
-                    }
-                }, 1000);
-            }
-        }
-
-        function pauseTimer() {
-            if (isTimerRunning) {
-                isTimerRunning = false;
-                clearInterval(timerInterval);
-                
-                const startBtn = document.getElementById('startBtn');
-                const pauseBtn = document.getElementById('pauseBtn');
-                const startBtnGM = document.getElementById('startBtnGM');
-                const pauseBtnGM = document.getElementById('pauseBtnGM');
-                
-                if (startBtn) startBtn.disabled = false;
-                if (pauseBtn) pauseBtn.disabled = true;
-                if (startBtnGM) startBtnGM.disabled = false;
-                if (pauseBtnGM) pauseBtnGM.disabled = true;
-            }
-        }
-
-        function resetTimer() {
-            pauseTimer();
-            timeLeft = 60;
-            updateTimerDisplay();
-            
-            const startBtn = document.getElementById('startBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const startBtnGM = document.getElementById('startBtnGM');
-            const pauseBtnGM = document.getElementById('pauseBtnGM');
-            
-            if (startBtn) startBtn.disabled = false;
-            if (pauseBtn) pauseBtn.disabled = true;
-            if (startBtnGM) startBtnGM.disabled = false;
-            if (pauseBtnGM) pauseBtnGM.disabled = true;
-        }
-
-        // Initialize the page
-        window.addEventListener('load', function() {
-            console.log('Page loaded, initializing...');
-            
-            // Start with player view
-            showPlayerView();
-            
-            // Initialize timer display
-            updateTimerDisplay();
-            const pauseBtn = document.getElementById('pauseBtn');
-            const pauseBtnGM = document.getElementById('pauseBtnGM');
-            if (pauseBtn) pauseBtn.disabled = true;
-            if (pauseBtnGM) pauseBtnGM.disabled = true;
-            
-            console.log('Game interface loaded with eraser functionality');
+        // Connection status monitoring
+        const connectedRef = ref(db, '.info/connected');
+        onValue(connectedRef, (snapshot) => {
+            isConnected = snapshot.val() === true;
+            updateConnectionStatus();
         });
 
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connectionStatus');
+            if (isConnected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.classList.remove('disconnected');
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.classList.add('disconnected');
+            }
+        }
+
+        // Listen to game state changes
+        const gameRef = ref(db, 'game');
+        onValue(gameRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                gameState = data;
+                render();
+            }
+        });
+
+        // Initialize game state if it doesn't exist
+        get(gameRef).then((snapshot) => {
+            if (!snapshot.exists()) {
+                set(gameRef, gameState);
+            }
+        });
+
+        // Timer synchronization
+        const timerRef = ref(db, 'game/timeLeft');
+        onValue(timerRef, (snapshot) => {
+            const time = snapshot.val();
+            if (time !== null && gameState.isVoting) {
+                gameState.timeLeft = time;
+                if (time === 0) {
+                    if (myPlayerNumber === 1) {
+                        endVoting();
+                    }
+                }
+                render();
+            }
+        });
+
+        // Start timer countdown (only Player 1 controls this)
+        function startTimerCountdown() {
+            if (timerInterval) clearInterval(timerInterval);
+            if (myPlayerNumber !== 1) return;
+
+            timerInterval = setInterval(async () => {
+                if (gameState.isVoting && gameState.timeLeft > 0) {
+                    await update(ref(db, 'game'), {
+                        timeLeft: gameState.timeLeft - 1
+                    });
+                } else if (gameState.isVoting && gameState.timeLeft === 0) {
+                    clearInterval(timerInterval);
+                    endVoting();
+                }
+            }, 1000);
+        }
+
+        // Game functions
+        async function startVoting() {
+            if (myPlayerNumber !== 1) return;
+            
+            await update(ref(db, 'game'), {
+                isVoting: true,
+                timeLeft: 10,
+                votes: {}
+            });
+            
+            startTimerCountdown();
+        }
+
+        async function endVoting() {
+            if (myPlayerNumber !== 1) return;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const finalVotes = { ...gameState.votes };
+            const newHistory = [...gameState.voteHistory];
+            newHistory.push({
+                round: gameState.currentRound,
+                votes: finalVotes
+            });
+            
+            await update(ref(db, 'game'), {
+                isVoting: false,
+                voteHistory: newHistory,
+                currentRound: gameState.currentRound + 1,
+                votes: {}
+            });
+        }
+
+        async function addPlayers() {
+            if (gameState.totalPlayers < 15) {
+                await update(ref(db, 'game'), {
+                    totalPlayers: gameState.totalPlayers + 1
+                });
+            }
+        }
+
+        async function resetGame() {
+            if (myPlayerNumber !== 1) return;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const newState = {
+                totalPlayers: 10,
+                selectedPlayers: [],
+                isVoting: false,
+                timeLeft: 10,
+                currentRound: 1,
+                votes: {},
+                voteHistory: []
+            };
+            
+            await set(ref(db, 'game'), newState);
+            
+            // Reset local state
+            myPlayerNumber = null;
+            selectedVote = null;
+            page = 'voting';
+        }
+
+        function selectPlayerNumber(num) {
+            if (gameState.selectedPlayers.includes(num)) return;
+            
+            myPlayerNumber = num;
+            const newSelectedPlayers = [...gameState.selectedPlayers, num];
+            
+            update(ref(db, 'game'), {
+                selectedPlayers: newSelectedPlayers
+            });
+        }
+
+        function deselectPlayerNumber() {
+            if (!myPlayerNumber) return;
+            
+            const newSelectedPlayers = gameState.selectedPlayers.filter(n => n !== myPlayerNumber);
+            myPlayerNumber = null;
+            
+            update(ref(db, 'game'), {
+                selectedPlayers: newSelectedPlayers
+            });
+        }
+
+        async function selectVote(num) {
+            if (!gameState.isVoting || !myPlayerNumber) return;
+            
+            selectedVote = num;
+            
+            const votePath = `game/votes/${myPlayerNumber}`;
+            await set(ref(db, votePath), num);
+            
+            render();
+        }
+
+        function getVoteResults(roundVotes) {
+            const results = {};
+            const didNotVote = [];
+            
+            Object.entries(roundVotes).forEach(([voter, voted]) => {
+                if (!results[voted]) {
+                    results[voted] = [];
+                }
+                results[voted].push(parseInt(voter));
+            });
+
+            for (let i = 1; i <= gameState.totalPlayers; i++) {
+                if (!roundVotes[i]) {
+                    didNotVote.push(i);
+                }
+            }
+
+            return { results, didNotVote };
+        }
+
+        // Render functions
+        function renderVotingPage() {
+            let html = `
+                <div class="container">
+                    <h1 class="title">LRS Voting</h1>
+            `;
+
+            // Master Controls for Player 1
+            if (myPlayerNumber === 1) {
+                html += `
+                    <div class="card">
+                        <h2 class="text-white" style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">
+                            👥 Master Controls
+                        </h2>
+                        <div class="grid-2" style="margin-bottom: 0.75rem;">
+                            <button onclick="window.startVoting()" ${gameState.isVoting ? 'disabled' : ''} class="btn btn-green">
+                                ▶ Start Voting
+                            </button>
+                            <button onclick="window.resetGame()" class="btn btn-red">
+                                ↻ Reset Game
+                            </button>
+                        </div>
+                        <button onclick="window.changePage('results')" class="btn btn-gray" style="width: 100%;">
+                            View Results
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Voting Timer
+            if (gameState.isVoting) {
+                html += `<div class="timer">Voting ends in: ${gameState.timeLeft}s</div>`;
+            }
+
+            // Player Selection
+            if (!myPlayerNumber) {
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h2 class="subtitle">Select Your Player Number</h2>
+                `;
+                
+                if (gameState.totalPlayers < 15) {
+                    html += `
+                        <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                            <button onclick="window.addPlayers()" class="btn btn-gray">
+                                + Add Player (${gameState.totalPlayers}/15)
+                            </button>
+                        </div>
+                    `;
+                }
+
+                html += '<div class="grid-2">';
+                for (let i = 1; i <= gameState.totalPlayers; i++) {
+                    const isTaken = gameState.selectedPlayers.includes(i);
+                    html += `
+                        <button onclick="window.selectPlayerNumber(${i})" ${isTaken ? 'disabled' : ''} class="player-tile">
+                            <div class="player-number">${i}</div>
+                            <div class="player-badge">
+                                ${isTaken ? 'TAKEN' : 'SELECT'}
+                            </div>
+                        </button>
+                    `;
+                }
+                html += '</div></div>';
+            }
+
+            // Voting Interface
+            if (myPlayerNumber) {
+                html += `
+                    <div class="card-white">
+                        <div class="flex-between">
+                            <div>
+                                <h2 class="text-white" style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem;">
+                                    You are Player ${myPlayerNumber}
+                                </h2>
+                                <p class="text-gray">Round ${gameState.currentRound}</p>
+                            </div>
+                            <button onclick="window.deselectPlayerNumber()" class="btn btn-gray">
+                                ← Change Player No.
+                            </button>
+                        </div>
+                    </div>
+
+                    <h2 class="subtitle">
+                        ${gameState.isVoting ? 'Vote now...' : 'Waiting for Player 1 to start vote'}
+                    </h2>
+
+                    <div class="grid-2">
+                `;
+
+                for (let i = 1; i <= gameState.totalPlayers; i++) {
+                    if (i !== myPlayerNumber) {
+                        const isSelected = selectedVote === i;
+                        const classes = isSelected 
+                            ? 'player-tile selected'
+                            : !gameState.isVoting
+                            ? 'player-tile disabled-vote'
+                            : 'player-tile';
+                        html += `
+                            <button onclick="window.selectVote(${i})" ${!gameState.isVoting ? 'disabled' : ''} class="${classes}">
+                                <div class="player-number">${i}</div>
+                                <div class="player-badge ${isSelected ? 'white' : ''}">
+                                    ${isSelected ? 'SELECTED' : 'VOTE'}
+                                </div>
+                            </button>
+                        `;
+                    }
+                }
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderResultsPage() {
+            let html = `
+                <div class="container">
+                    <h1 class="title">Voting Results</h1>
+
+                    <div class="flex-between" style="margin-bottom: 2rem;">
+                        <button onclick="window.changePage('voting')" class="btn btn-gray">
+                            ← Back to Voting
+                        </button>
+            `;
+
+            if (gameState.isVoting) {
+                html += `<div class="timer" style="margin: 0;">Voting Active: ${gameState.timeLeft}s</div>`;
+            }
+
+            html += '</div>';
+
+            if (gameState.voteHistory.length === 0) {
+                html += `<div class="no-results">No voting history yet...</div>`;
+            } else {
+                html += '<div class="grid-results">';
+                
+                gameState.voteHistory.forEach((record) => {
+                    const { results, didNotVote } = getVoteResults(record.votes);
+                    
+                    html += `
+                        <div class="card">
+                            <h2 class="text-white" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">
+                                Round ${record.round}
+                            </h2>
+                            <div style="margin-bottom: 1.5rem;">
+                    `;
+
+                    const sortedResults = Object.entries(results).sort(([, a], [, b]) => b.length - a.length);
+                    sortedResults.forEach(([player, voters], index) => {
+                        html += `
+                            <div class="vote-result ${index === 0 ? 'top' : ''}">
+                                <div class="flex-wrap" style="align-items: center;">
+                                    <div class="voter-avatar">${player}</div>
+                                    <span class="text-white" style="font-weight: 600; font-size: 1.125rem;">voted by</span>
+                                    <div class="flex-wrap" style="flex: 1;">
+                        `;
+                        
+                        voters.sort((a, b) => a - b).forEach(voter => {
+                            html += `<span class="voter-chip">${voter}</span>`;
+                        });
+
+                        html += `
+                                    </div>
+                                    <div class="vote-count">
+                                        ${voters.length} ${voters.length === 1 ? 'vote' : 'votes'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+
+                    if (didNotVote.length > 0) {
+                        html += `
+                            <div class="vote-result">
+                                <div class="flex-wrap" style="align-items: center;">
+                                    <span class="text-gray" style="font-weight: 600; font-size: 1.125rem;">Did Not Vote:</span>
+                                    <div class="flex-wrap">
+                        `;
+                        
+                        didNotVote.sort((a, b) => a - b).forEach(player => {
+                            html += `<span class="voter-chip">${player}</span>`;
+                        });
+
+                        html += '</div></div></div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (page === 'voting') {
+                app.innerHTML = renderVotingPage();
+            } else {
+                app.innerHTML = renderResultsPage();
+            }
+        }
+
+        function changePage(newPage) {
+            page = newPage;
+            render();
+        }
+
+        // Expose functions to global scope for onclick handlers
+        window.startVoting = startVoting;
+        window.resetGame = resetGame;
+        window.addPlayers = addPlayers;
+        window.selectPlayerNumber = selectPlayerNumber;
+        window.deselectPlayerNumber = deselectPlayerNumber;
+        window.selectVote = selectVote;
+        window.changePage = changePage;
+
+        // Initial render
+        render();
     </script>
 </body>
 </html>
